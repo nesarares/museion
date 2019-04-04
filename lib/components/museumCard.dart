@@ -107,6 +107,11 @@ class _MuseumCardState extends State<MuseumCard> {
 
         print('Completed downloading task $id');
         FlutterDownloader.registerCallback(null);
+
+        setState(() {
+          downloadState = DownloadState.DOWNLOADING;
+          downloadStep = 3;
+        });
       });
 
       String savedDirPath = (await getApplicationDocumentsDirectory()).path;
