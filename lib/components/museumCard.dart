@@ -25,7 +25,7 @@ class MuseumCard extends StatefulWidget {
   _MuseumCardState createState() => _MuseumCardState();
 }
 
-enum DownloadState { DOWNLOADING, DOWNLOADED, NOT_DOWNLOADED }
+enum DownloadState { DOWNLOADING, DOWNLOADED, NOT_DOWNLOADED, DELETING }
 
 class _MuseumCardState extends State<MuseumCard> {
   static final double columnTextGap = 6.0;
@@ -65,17 +65,17 @@ class _MuseumCardState extends State<MuseumCard> {
     final int paintingsDataCount =
         await dbLocal.countPaintingsDataByMuseum(widget.museumId);
 
-    print('# of Paintings: $paintingsCount');
-
     if (paintingsCount > 0 && paintingsCount == paintingsDataCount) {
       setState(() {
         downloadState = DownloadState.DOWNLOADED;
+        recordsCount = paintingsCount;
+      });
+    } else {
+      setState(() {
+        downloadState = DownloadState.NOT_DOWNLOADED;
+        recordsCount = paintingsCount;
       });
     }
-
-    setState(() {
-      recordsCount = paintingsCount;
-    });
   }
 
   Future<void> downloadDetails() async {
@@ -111,8 +111,6 @@ class _MuseumCardState extends State<MuseumCard> {
       String downloadUrl =
           await storage.ref().child('${widget.museumId}.zip').getDownloadURL();
 
-      print(downloadUrl);
-
       String savedDirPath = (await getApplicationDocumentsDirectory()).path;
       String savePath = '$savedDirPath/${widget.museumId}';
       String archiveName = '${widget.museumId}.zip';
@@ -121,12 +119,9 @@ class _MuseumCardState extends State<MuseumCard> {
       saveDir.createSync();
 
       FlutterDownloader.registerCallback((id, status, progress) async {
-        print(
-            'Download task ($id) is in status ($status) and process ($progress)');
         if (id != downloadTaskId || status != DownloadTaskStatus.complete)
           return;
 
-        print('Completed downloading task $id');
         extractArchive(savePath, archiveName);
         await generateData();
 
@@ -150,15 +145,12 @@ class _MuseumCardState extends State<MuseumCard> {
     File archiveFile = new File('$savePath/$archiveName');
     List<int> bytes = archiveFile.readAsBytesSync();
 
-    print(bytes.length);
-
     // Decode the Zip file
     Archive archive = new ZipDecoder().decodeBytes(bytes);
 
     // Extract the contents of the Zip archive to disk.
     for (ArchiveFile file in archive) {
       String filename = file.name;
-      print(filename);
       if (file.isFile) {
         List<int> data = file.content;
         try {
@@ -193,15 +185,27 @@ class _MuseumCardState extends State<MuseumCard> {
 
     await dbLocal.insertPaintingsDataMap(paintings);
 
-    setState(() {
-      downloadState = DownloadState.DOWNLOADED;
-    });
+    checkDownloaded();
   }
 
   onDownload() async {
     await downloadDetails();
     await downloadImages();
     // await generateData();
+  }
+
+  onDeleteData() async {
+    setState(() {
+      downloadState = DownloadState.DELETING;
+    });
+
+    String savedDirPath = (await getApplicationDocumentsDirectory()).path;
+    String savePath = '$savedDirPath/${widget.museumId}';
+    Directory saveDir = Directory(savePath);
+    if (saveDir.existsSync()) saveDir.deleteSync(recursive: true);
+    await dbLocal.deletePaintingsByMuseum(widget.museumId);
+
+    checkDownloaded();
   }
 
   @override
@@ -273,7 +277,9 @@ class _MuseumCardState extends State<MuseumCard> {
                                               color: Colors.white))),
                                   Visibility(
                                       visible: downloadState ==
-                                          DownloadState.DOWNLOADING,
+                                              DownloadState.DOWNLOADING ||
+                                          downloadState ==
+                                              DownloadState.DELETING,
                                       child: SizedBox(
                                         child: new CircularProgressIndicator(
                                             valueColor:
@@ -286,8 +292,10 @@ class _MuseumCardState extends State<MuseumCard> {
                                   Visibility(
                                       visible: downloadState ==
                                           DownloadState.DOWNLOADED,
-                                      child:
-                                          Icon(Icons.done, color: Colors.white))
+                                      child: InkWell(
+                                          onTap: onDeleteData,
+                                          child: Icon(Icons.delete_forever,
+                                              color: Colors.white)))
                                 ]))
                           ]))),
               AnimatedCrossFade(

@@ -52,7 +52,10 @@ class DatabaseHelper {
                 ${PaintingData.columnId} TEXT PRIMARY KEY,
                 ${PaintingData.columnPhash} TEXT NOT NULL,
                 ${PaintingData.columnHistogram} TEXT NOT NULL,
-                FOREIGN KEY(${PaintingData.columnId}) REFERENCES ${Painting.tableName}(${Painting.columnId})
+                CONSTRAINT fk_id
+                  FOREIGN KEY(${PaintingData.columnId}) 
+                  REFERENCES ${Painting.tableName}(${Painting.columnId})
+                  ON DELETE CASCADE
               )
               ''');
   }
@@ -100,6 +103,12 @@ class DatabaseHelper {
   Future<int> removeAllRecords() async {
     Database db = await database;
     return db.delete(Painting.tableName);
+  }
+
+  Future<int> deletePaintingsByMuseum(String museumId) async {
+    Database db = await database;
+    return db.delete(Painting.tableName,
+        where: '${Painting.columnMuseum} = ?', whereArgs: [museumId]);
   }
 
   Future<void> insertPaintingsDataMap(
