@@ -1,16 +1,18 @@
 import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
-import 'package:open_museum_guide/models/painting.dart';
 import 'dart:ui';
 
-import 'package:open_museum_guide/utils/constants.dart';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:archive/archive.dart';
+import 'package:archive/archive_io.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/models/painting.dart';
+import 'package:open_museum_guide/utils/constants.dart';
 
 class MuseumCard extends StatefulWidget {
   final String imagePath;
@@ -27,6 +29,9 @@ enum DownloadState { DOWNLOADING, DOWNLOADED, NOT_DOWNLOADED }
 
 class _MuseumCardState extends State<MuseumCard> {
   static final double columnTextGap = 6.0;
+
+  static const platform =
+      const MethodChannel('com.openmg.open_museum_guide/opencv');
 
   final Firestore db = Firestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
@@ -57,7 +62,16 @@ class _MuseumCardState extends State<MuseumCard> {
     // Check for downloaded paintings data
     final int paintingsCount =
         await dbLocal.countPaintingsByMuseum(widget.museumId);
+    final int paintingsDataCount =
+        await dbLocal.countPaintingsDataByMuseum(widget.museumId);
+
     print('# of Paintings: $paintingsCount');
+
+    if (paintingsCount > 0 && paintingsCount == paintingsDataCount) {
+      setState(() {
+        downloadState = DownloadState.DOWNLOADED;
+      });
+    }
 
     setState(() {
       recordsCount = paintingsCount;
@@ -99,36 +113,95 @@ class _MuseumCardState extends State<MuseumCard> {
 
       print(downloadUrl);
 
-      FlutterDownloader.registerCallback((id, status, progress) {
+      String savedDirPath = (await getApplicationDocumentsDirectory()).path;
+      String savePath = '$savedDirPath/${widget.museumId}';
+      String archiveName = '${widget.museumId}.zip';
+      Directory saveDir = Directory(savePath);
+      if (saveDir.existsSync()) saveDir.deleteSync(recursive: true);
+      saveDir.createSync();
+
+      FlutterDownloader.registerCallback((id, status, progress) async {
         print(
             'Download task ($id) is in status ($status) and process ($progress)');
         if (id != downloadTaskId || status != DownloadTaskStatus.complete)
           return;
 
         print('Completed downloading task $id');
-        FlutterDownloader.registerCallback(null);
+        extractArchive(savePath, archiveName);
+        await generateData();
 
-        setState(() {
-          downloadState = DownloadState.DOWNLOADING;
-          downloadStep = 3;
-        });
+        FlutterDownloader.registerCallback(null);
       });
 
-      String savedDirPath = (await getApplicationDocumentsDirectory()).path;
       downloadTaskId = await FlutterDownloader.enqueue(
-        url: downloadUrl,
-        savedDir: savedDirPath,
-        showNotification: true,
-        openFileFromNotification: false,
-      );
+          url: downloadUrl,
+          savedDir: savePath,
+          showNotification: true,
+          openFileFromNotification: false,
+          fileName: archiveName);
     } catch (err) {
       print("Could not download images for museum ${widget.museumId}");
+      print(err);
     }
   }
 
+  void extractArchive(String savePath, String archiveName) {
+    // Read the Zip file from disk.
+    File archiveFile = new File('$savePath/$archiveName');
+    List<int> bytes = archiveFile.readAsBytesSync();
+
+    print(bytes.length);
+
+    // Decode the Zip file
+    Archive archive = new ZipDecoder().decodeBytes(bytes);
+
+    // Extract the contents of the Zip archive to disk.
+    for (ArchiveFile file in archive) {
+      String filename = file.name;
+      print(filename);
+      if (file.isFile) {
+        List<int> data = file.content;
+        try {
+          new File('$savePath/$filename')
+            ..createSync(recursive: true)
+            ..writeAsBytesSync(data);
+        } catch (ex) {
+          print("cannot write file");
+          print(ex);
+        }
+      } else {
+        new Directory(filename)..create(recursive: true);
+      }
+    }
+
+    archiveFile.deleteSync();
+  }
+
+  Future<void> generateData() async {
+    setState(() {
+      downloadState = DownloadState.DOWNLOADING;
+      downloadStep = 3;
+    });
+
+    var paintings = await dbLocal.getPaintingsWithColumnsByMuseum(
+        [Painting.columnId, Painting.columnImagePath], widget.museumId);
+
+    paintings = (await platform.invokeMethod<List<dynamic>>(
+            "generateImageData", {"paintings": paintings}))
+        .map((p) => Map<String, String>.from(p))
+        .toList();
+
+    await dbLocal.insertPaintingsDataMap(paintings);
+
+    setState(() {
+      downloadState = DownloadState.DOWNLOADED;
+    });
+  }
+
   onDownload() async {
-    // await downloadDetails();
+    await downloadDetails();
     await downloadImages();
+    // await generateData();
   }
 
   @override

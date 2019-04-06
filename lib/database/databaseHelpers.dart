@@ -1,16 +1,14 @@
 import 'dart:io';
 import 'package:open_museum_guide/models/painting.dart';
+import 'package:open_museum_guide/models/paintingData.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
-  // This is the actual database filename that is saved in the docs directory.
   static final _databaseName = "OpenMuseumGuideDB.db";
-  // Increment this version when you need to change the schema.
   static final _databaseVersion = 1;
 
-  // Make this a singleton class.
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
@@ -48,29 +46,25 @@ class DatabaseHelper {
                 ${Painting.columnDimensions} TEXT
               )
               ''');
+
+    await db.execute('''
+              CREATE TABLE ${PaintingData.tableName} (
+                ${PaintingData.columnId} TEXT PRIMARY KEY,
+                ${PaintingData.columnPhash} TEXT NOT NULL,
+                ${PaintingData.columnHistogram} TEXT NOT NULL,
+                FOREIGN KEY(${PaintingData.columnId}) REFERENCES ${Painting.tableName}(${Painting.columnId})
+              )
+              ''');
   }
 
   // Database helper methods:
-
-  Future<int> insertPainting(Painting painting) async {
-    Database db = await database;
-    int id = await db.insert(Painting.tableName, painting.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
-    return id;
-  }
-
-  Future<int> insertPaintingMap(Map<String, dynamic> painting) async {
-    Database db = await database;
-    int id = await db.insert(Painting.tableName, painting,
-        conflictAlgorithm: ConflictAlgorithm.replace);
-    return id;
-  }
 
   Future<void> insertPaintingsMap(List<Map<String, dynamic>> paintings) async {
     Database db = await database;
     var batch = db.batch();
     paintings.forEach((painting) {
-      batch.insert(Painting.tableName, painting, conflictAlgorithm: ConflictAlgorithm.replace);
+      batch.insert(Painting.tableName, painting,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
     await batch.commit(noResult: true);
   }
@@ -85,14 +79,22 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<List<Map<String, dynamic>>> getPaintingsWithColumnsByMuseum(
+      List<String> columns, String museumId) async {
+    Database db = await database;
+    return (await db.query(Painting.tableName,
+        columns: columns,
+        where: '${Painting.columnMuseum} = ?',
+        whereArgs: [museumId]));
+  }
+
   Future<int> countPaintingsByMuseum(String museumId) async {
     Database db = await database;
-    int count = Sqflite.firstIntValue(await db.rawQuery('''
+    return Sqflite.firstIntValue(await db.rawQuery('''
       SELECT COUNT(*) 
       FROM ${Painting.tableName}
       WHERE ${Painting.columnMuseum} = ?
       ''', [museumId]));
-    return count;
   }
 
   Future<int> removeAllRecords() async {
@@ -100,7 +102,24 @@ class DatabaseHelper {
     return db.delete(Painting.tableName);
   }
 
-  // TODO: queryAllWords()
-  // TODO: delete(int id)
-  // TODO: update(Word word)
+  Future<void> insertPaintingsDataMap(
+      List<Map<String, dynamic>> paintingsData) async {
+    Database db = await database;
+    var batch = db.batch();
+    paintingsData.forEach((data) {
+      batch.insert(PaintingData.tableName, data,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+    await batch.commit(noResult: true);
+  }
+
+  Future<int> countPaintingsDataByMuseum(String museumId) async {
+    Database db = await database;
+    return Sqflite.firstIntValue(await db.rawQuery('''
+      SELECT COUNT(*) 
+      FROM ${Painting.tableName} INNER JOIN ${PaintingData.tableName} 
+      ON ${Painting.tableName}.${Painting.columnId} = ${PaintingData.tableName}.${PaintingData.columnId}
+      WHERE ${Painting.tableName}.${Painting.columnMuseum} = ?
+      ''', [museumId]));
+  }
 }
