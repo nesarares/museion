@@ -6,8 +6,7 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:open_museum_guide/models/paintingData.dart';
-import 'package:open_museum_guide/services/paintingDataService.dart';
+import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -30,7 +29,7 @@ class MuseumCard extends StatefulWidget {
 enum DownloadState { DOWNLOADING, DOWNLOADED, NOT_DOWNLOADED, DELETING }
 
 class _MuseumCardState extends State<MuseumCard> {
-  static final PaintingDataService service = PaintingDataService.instance;
+  static final LoadingService loadingService = LoadingService.instance;
 
   static final double columnTextGap = 6.0;
 
@@ -188,8 +187,8 @@ class _MuseumCardState extends State<MuseumCard> {
         .toList();
 
     await dbLocal.insertPaintingsDataMap(paintings);
-    if (widget.museumId == service.museumId) {
-      await service.loadMuseumData();
+    if (widget.museumId == loadingService.museumId) {
+      await loadingService.loadMuseumData();
     }
     await checkDownloaded();
   }

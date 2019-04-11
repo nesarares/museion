@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:open_museum_guide/utils/roundIconButton.dart';
+import 'package:after_layout/after_layout.dart';
 
 class ImagePage extends StatefulWidget {
   final File image;
@@ -13,10 +15,24 @@ class ImagePage extends StatefulWidget {
   _ImagePageState createState() => _ImagePageState();
 }
 
-class _ImagePageState extends State<ImagePage> {
+class _ImagePageState extends State<ImagePage>
+    with AfterLayoutMixin<ImagePage> {
+  static final DetectionService detectionService = DetectionService.instance;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    // Calling the same function "after layout" to resolve the issue.
+    runDetection();
+  }
+
+  Future<void> runDetection() async {
+    var detections = await detectionService.detectObject(widget.image);
+    print(detections);
   }
 
   void goBack() {

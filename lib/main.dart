@@ -1,11 +1,8 @@
 // import 'dart:async';
 
-// import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:open_museum_guide/pages/homePage.dart';
-import 'package:open_museum_guide/pages/tabsPage.dart';
 
 void main() => runApp(MyApp());
 

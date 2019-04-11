@@ -36,7 +36,10 @@ class _TabsPageState extends State<TabsPage> {
   }
 
   Future<void> openCamera() async {
-    File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    double maxWidth = MediaQuery.of(context).size.width;
+    double maxHeight = MediaQuery.of(context).size.height;
+    File image = await ImagePicker.pickImage(
+        source: ImageSource.gallery, maxWidth: maxWidth, maxHeight: maxHeight);
 
     if (image == null) {
       print("No image selected");

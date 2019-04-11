@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/pages/tabsPage.dart';
-import 'package:open_museum_guide/services/paintingDataService.dart';
+import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,7 +10,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isLoading = true;
-  static final PaintingDataService service = PaintingDataService.instance;
+  static final LoadingService loadingService = LoadingService.instance;
 
   @override
   void initState() {
@@ -19,7 +19,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadData() async {
-    await service.loadMuseumData();
+    await loadingService.loadMuseumData();
+    await loadingService.loadModel();
     setState(() {
       isLoading = false;
     });
