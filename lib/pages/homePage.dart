@@ -10,7 +10,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isLoading = true;
-  PaintingDataService service = PaintingDataService.instance;
+  static final PaintingDataService service = PaintingDataService.instance;
 
   @override
   void initState() {
