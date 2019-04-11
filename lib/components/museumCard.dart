@@ -6,6 +6,7 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:open_museum_guide/models/paintingData.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -281,10 +282,9 @@ class _MuseumCardState extends State<MuseumCard> {
                                           downloadState ==
                                               DownloadState.DELETING,
                                       child: SizedBox(
-                                        child: new CircularProgressIndicator(
-                                            valueColor:
-                                                new AlwaysStoppedAnimation(
-                                                    Colors.white),
+                                        child: CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation(
+                                                Colors.white),
                                             strokeWidth: 2.0),
                                         height: 22,
                                         width: 22,

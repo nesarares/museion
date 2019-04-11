@@ -1,17 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:open_museum_guide/pages/imagePage.dart';
+
 import 'package:open_museum_guide/tabs/homeTab.dart';
 import 'package:open_museum_guide/tabs/settingsTab.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 import 'package:open_museum_guide/utils/fabBottomAppBar.dart';
 
 class TabsPage extends StatefulWidget {
-  TabsPage() : super();
+  TabsPage({Key key}) : super(key: key);
 
   _TabsPageState createState() => _TabsPageState();
 }
 
 class _TabsPageState extends State<TabsPage> {
-  int _selectedTab = 3;
+  int _selectedTab = 0;
 
   Widget _buildTab(int index) {
     switch (index) {
@@ -30,13 +35,25 @@ class _TabsPageState extends State<TabsPage> {
     });
   }
 
+  Future<void> openCamera() async {
+    File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) {
+      print("No image selected");
+      return;
+    }
+
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => ImagePage(image: image)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(child: _buildTab(_selectedTab)),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: openCamera,
         tooltip: 'Open Camera',
         child: Icon(Icons.photo_camera, size: 30),
         backgroundColor: colors['primary'],

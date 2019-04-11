@@ -3,8 +3,9 @@
 // import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 // import 'package:image_picker/image_picker.dart';
-import 'package:open_museum_guide/tabsPage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:open_museum_guide/pages/homePage.dart';
+import 'package:open_museum_guide/pages/tabsPage.dart';
 
 void main() => runApp(MyApp());
 
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
           primarySwatch: Colors.deepOrange, fontFamily: 'Varela Round'),
-      home: TabsPage(),
+      home: HomePage(),
     );
   }
 }

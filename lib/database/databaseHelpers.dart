@@ -82,6 +82,16 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<PaintingData> getPaintingDataById(String id) async {
+    Database db = await database;
+    List<Map> maps = await db.query(PaintingData.tableName,
+        where: '${PaintingData.columnId} = ?', whereArgs: [id]);
+    if (maps.length > 0) {
+      return PaintingData.fromMap(maps.first);
+    }
+    return null;
+  }
+
   Future<List<Map<String, dynamic>>> getPaintingsWithColumnsByMuseum(
       List<String> columns, String museumId) async {
     Database db = await database;
@@ -89,6 +99,17 @@ class DatabaseHelper {
         columns: columns,
         where: '${Painting.columnMuseum} = ?',
         whereArgs: [museumId]));
+  }
+
+  Future<List<Map<String, dynamic>>> getPaintingsDataByMuseum(
+      String museumId) async {
+    Database db = await database;
+    return db.rawQuery('''
+      SELECT pd.${PaintingData.columnId}, pd.${PaintingData.columnHistogram}, pd.${PaintingData.columnPhash}
+      FROM ${Painting.tableName} p INNER JOIN ${PaintingData.tableName} pd
+        ON p.${Painting.columnId} = pd.${PaintingData.columnId}
+      WHERE ${Painting.columnMuseum} = ?
+    ''', [museumId]);
   }
 
   Future<int> countPaintingsByMuseum(String museumId) async {

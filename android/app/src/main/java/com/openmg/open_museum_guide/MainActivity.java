@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,13 +33,7 @@ import io.flutter.util.PathUtils;
 public class MainActivity extends FlutterActivity {
   private static final String CHANNEL = "com.openmg.open_museum_guide/opencv";
   private PHash pHashClass;
-
-  static final int phashType = CvType.CV_8UC1;
-  static final int phashRows = 1;
-  static final int phashCols = 8;
-  static final int histType = CvType.CV_32FC1;
-  static final int histRows = 12;
-  static final int histCols = 12;
+  private List<PaintingData> paintingDataList;
 
   static class ImgData {
     String phash;
@@ -67,16 +62,36 @@ public class MainActivity extends FlutterActivity {
     new MethodChannel(getFlutterView(), CHANNEL).setMethodCallHandler(
         (call, result) -> {
           switch (call.method) {
-            case "runEdgeDetectionOnImage":
-              runEdgeDetectionOnImage(call, result);
-              break;
             case "generateImageData":
               generateImageData(call, result);
+              break;
+            case "loadPaintingsData":
+              loadPaintingsData(call, result);
               break;
             default:
               result.notImplemented();
           }
         });
+  }
+
+  private void loadPaintingsData(MethodCall call, MethodChannel.Result result) {
+    paintingDataList = new ArrayList<>();
+
+    HashMap args = (HashMap) call.arguments;
+    List<Map<String, String>> paintingsData = (List<Map<String, String>>) args.get("data");
+
+    for (Map<String, String> paintingData : paintingsData) {
+      String id = paintingData.get("id");
+      String phashString = paintingData.get("phash");
+      String histogramString = paintingData.get("histogram");
+
+      PaintingData p = new PaintingData(id, phashString, histogramString);
+      paintingDataList.add(p);
+    }
+
+    print("" + paintingDataList.size());
+
+    result.success(true);
   }
 
   private ImgData getHashAndHistogram(Mat imgMat) {
@@ -88,7 +103,7 @@ public class MainActivity extends FlutterActivity {
     MatOfInt channels = new MatOfInt(0, 1);
     Mat mask = new Mat();
     Mat histMat = new Mat();
-    MatOfInt histSize = new MatOfInt(histRows, histCols);
+    MatOfInt histSize = new MatOfInt(Constants.histRows, Constants.histCols);
     MatOfFloat histRanges = new MatOfFloat(0f, 256f, 0f, 256f);
 
     Imgproc.calcHist(Arrays.asList(imgMat),
@@ -98,9 +113,9 @@ public class MainActivity extends FlutterActivity {
         histSize,
         histRanges);
 
-    // Convert from Mat to base 65 strings
-    byte[] phashArray = new byte[phashRows * phashCols];
-    float[] histArray = new float[histRows * histCols];
+    // Convert from Mat to base 64 strings
+    byte[] phashArray = new byte[Constants.phashRows * Constants.phashCols];
+    float[] histArray = new float[Constants.histRows * Constants.histCols];
 
     phashMat.get(0, 0, phashArray);
     histMat.get(0, 0, histArray);
