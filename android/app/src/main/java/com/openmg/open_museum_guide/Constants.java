@@ -9,4 +9,5 @@ public class Constants {
   public static final int histType = CvType.CV_32FC1;
   public static final int histRows = 12;
   public static final int histCols = 12;
+  public static final int imageType = CvType.CV_8UC3;
 }

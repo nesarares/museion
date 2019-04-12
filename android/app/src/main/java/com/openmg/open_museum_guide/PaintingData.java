@@ -3,9 +3,9 @@ package com.openmg.open_museum_guide;
 import org.opencv.core.Mat;
 
 public class PaintingData {
-  private String id;
-  private Mat phash;
-  private Mat histogram;
+  public String id;
+  public Mat phash;
+  public Mat histogram;
 
   public PaintingData(String id, String phashBase64, String histogramBase64) {
     this.id = id;

@@ -35,11 +35,21 @@ public class MainActivity extends FlutterActivity {
   private PHash pHashClass;
   private List<PaintingData> paintingDataList;
 
-  static class ImgData {
+  static class ImgDataString {
     String phash;
     String histogram;
 
-    public ImgData(String phash, String histogram) {
+    public ImgDataString(String phash, String histogram) {
+      this.phash = phash;
+      this.histogram = histogram;
+    }
+  }
+
+  static class ImgDataMat {
+    Mat phash;
+    Mat histogram;
+
+    public ImgDataMat(Mat phash, Mat histogram) {
       this.phash = phash;
       this.histogram = histogram;
     }
@@ -68,10 +78,45 @@ public class MainActivity extends FlutterActivity {
             case "loadPaintingsData":
               loadPaintingsData(call, result);
               break;
+            case "detectPainting":
+              detectPainting(call, result);
+              break;
             default:
               result.notImplemented();
           }
         });
+  }
+
+  private void detectPainting(MethodCall call, MethodChannel.Result result) {
+    HashMap args = (HashMap) call.arguments;
+    byte[] bytes = (byte[]) args.get("bytes");
+    int width = (int) args.get("width");
+    int height = (int) args.get("height");
+
+    Mat imgMat = new Mat(height, width, Constants.imageType);
+    imgMat.put(0, 0, bytes);
+
+    ImgDataMat imgData = getHashAndHistogramMat(imgMat);
+
+    Map<String, Double> distances = new HashMap<>();
+    double phashDiff, histDiff;
+
+    for (PaintingData paintingData : paintingDataList) {
+      phashDiff = pHashClass.compare(paintingData.phash, imgData.phash);
+//      histDiff = Imgproc.compareHist(paintingData.histogram, imgData.histogram, Imgproc.HISTCMP_INTERSECT);
+      distances.put(paintingData.id, phashDiff);
+    }
+
+    String id = null;
+    double min = 1000;
+    for (Map.Entry<String, Double> entry : distances.entrySet()) {
+      if (entry.getValue() < min) {
+        id = entry.getKey();
+        min = entry.getValue();
+      }
+    }
+
+    result.success(id);
   }
 
   private void loadPaintingsData(MethodCall call, MethodChannel.Result result) {
@@ -94,7 +139,7 @@ public class MainActivity extends FlutterActivity {
     result.success(true);
   }
 
-  private ImgData getHashAndHistogram(Mat imgMat) {
+  private ImgDataMat getHashAndHistogramMat(Mat imgMat) {
     // Compute pHash
     Mat phashMat = new Mat();
     pHashClass.compute(imgMat, phashMat);
@@ -113,17 +158,23 @@ public class MainActivity extends FlutterActivity {
         histSize,
         histRanges);
 
+    return new ImgDataMat(phashMat, histMat);
+  }
+
+  private ImgDataString getHashAndHistogramStrings(Mat imgMat) {
+    ImgDataMat imgDataMat = getHashAndHistogramMat(imgMat);
+
     // Convert from Mat to base 64 strings
     byte[] phashArray = new byte[Constants.phashRows * Constants.phashCols];
     float[] histArray = new float[Constants.histRows * Constants.histCols];
 
-    phashMat.get(0, 0, phashArray);
-    histMat.get(0, 0, histArray);
+    imgDataMat.phash.get(0, 0, phashArray);
+    imgDataMat.histogram.get(0, 0, histArray);
 
     String phashBase64 = SerializationUtils.toBase64String(phashArray);
     String histBase64 = SerializationUtils.toBase64String(histArray);
 
-    return new ImgData(phashBase64, histBase64);
+    return new ImgDataString(phashBase64, histBase64);
   }
 
   private void generateImageData(MethodCall call, MethodChannel.Result result) {
@@ -137,9 +188,9 @@ public class MainActivity extends FlutterActivity {
       Mat imgMat = Imgcodecs.imread(appDir + "/" + imagePath);
       Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_BGR2RGB);
 
-      ImgData imgData = getHashAndHistogram(imgMat);
-      painting.put("phash", imgData.phash);
-      painting.put("histogram", imgData.histogram);
+      ImgDataString imgDataString = getHashAndHistogramStrings(imgMat);
+      painting.put("phash", imgDataString.phash);
+      painting.put("histogram", imgDataString.histogram);
       painting.remove("imagePath");
     }
 

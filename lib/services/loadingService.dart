@@ -10,7 +10,7 @@ class LoadingService {
   static const platform =
       const MethodChannel('com.openmg.open_museum_guide/opencv');
 
-  String museumId = "4bGQk6lrv9cyu0y7l4FZ";
+  String museumId = "GWNdYOmSpgjkLxnLSroV";
 
   Future<void> loadMuseumData() async {
     List data = await dbLocal.getPaintingsDataByMuseum(museumId);

@@ -2,9 +2,14 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/components/paintingCard.dart';
+import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
+import 'package:open_museum_guide/utils/constants.dart';
 import 'package:open_museum_guide/utils/roundIconButton.dart';
 import 'package:after_layout/after_layout.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ImagePage extends StatefulWidget {
   final File image;
@@ -18,6 +23,10 @@ class ImagePage extends StatefulWidget {
 class _ImagePageState extends State<ImagePage>
     with AfterLayoutMixin<ImagePage> {
   static final DetectionService detectionService = DetectionService.instance;
+  static final DatabaseHelper dbLocal = DatabaseHelper.instance;
+
+  Painting painting;
+  String savedDirPath;
 
   @override
   void initState() {
@@ -28,11 +37,21 @@ class _ImagePageState extends State<ImagePage>
   void afterFirstLayout(BuildContext context) {
     // Calling the same function "after layout" to resolve the issue.
     runDetection();
+    // loadPainting("PSMc10DTUJAHGZAHy9OP");
   }
 
   Future<void> runDetection() async {
-    var detections = await detectionService.detectObject(widget.image);
-    print(detections);
+    String id = await detectionService.recognizePaintingFile(widget.image);
+    loadPainting(id);
+  }
+
+  Future<void> loadPainting(String id) async {
+    Painting p = await dbLocal.getPaintingById(id);
+    savedDirPath = (await getApplicationDocumentsDirectory()).path;
+    p.imagePath = "$savedDirPath/${p.imagePath}";
+    setState(() {
+      painting = p;
+    });
   }
 
   void goBack() {
@@ -62,6 +81,12 @@ class _ImagePageState extends State<ImagePage>
                     iconSize: 32,
                     icon: Icons.arrow_back,
                     onPressed: goBack,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: PaintingCard(
+                    painting: painting,
                   ),
                 )
               ],
