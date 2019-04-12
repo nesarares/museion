@@ -210,7 +210,8 @@ class _MuseumCardState extends State<MuseumCard> {
     if (saveDir.existsSync()) saveDir.deleteSync(recursive: true);
     await dbLocal.deletePaintingsByMuseum(widget.museumId);
 
-    checkDownloaded();
+    Future.delayed(const Duration(milliseconds: 450), checkDownloaded);
+    // checkDownloaded();
   }
 
   @override
@@ -309,9 +310,9 @@ class _MuseumCardState extends State<MuseumCard> {
                       : CrossFadeState.showFirst,
                   sizeCurve: Curves.ease,
                   firstChild: Container(
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                    child: Text('# of records: $recordsCount'),
-                  ),
+                      // padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                      // child: Text('# of records: $recordsCount'),
+                      ),
                   secondChild: Container(
                       padding:
                           EdgeInsets.symmetric(vertical: 15, horizontal: 20),

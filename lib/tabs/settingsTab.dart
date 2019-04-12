@@ -39,10 +39,10 @@ class _SettingsTabState extends State<SettingsTab> {
             child: Text("Download data for museums",
                 style: TextStyle(fontSize: 16)),
           ),
-          RaisedButton(
-            onPressed: _deleteDatabase,
-            child: Text("DeleteDatabase"),
-          ),
+          // RaisedButton(
+          //   onPressed: _deleteDatabase,
+          //   child: Text("DeleteDatabase"),
+          // ),
           MuseumCard(
             imagePath: "assets/images/orsay.jpg",
             title: "Musée d'Orsay",
@@ -51,7 +51,7 @@ class _SettingsTabState extends State<SettingsTab> {
           SizedBox(height: _columnCardsGap),
           MuseumCard(
             imagePath: "assets/images/louvre.jpg",
-            title: "Musée du Louvre",
+            title: "Museum of testing",
             museumId: "4bGQk6lrv9cyu0y7l4FZ",
           )
         ],

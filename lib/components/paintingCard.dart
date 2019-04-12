@@ -59,12 +59,12 @@ class PaintingCard extends StatelessWidget {
                             Text("${painting?.artist}",
                                 style: TextStyle(
                                     fontSize: fontSizeCard,
-                                    fontWeight: FontWeight.w700)),
+                                    fontWeight: FontWeight.w900)),
                             SizedBox(height: textGap),
                             Text("${painting?.title}",
                                 style: TextStyle(
                                     fontSize: fontSizeCard,
-                                    fontWeight: FontWeight.w500)),
+                                    fontWeight: FontWeight.w700)),
                             SizedBox(height: textGap),
                             Text("${painting?.year}",
                                 style: TextStyle(
