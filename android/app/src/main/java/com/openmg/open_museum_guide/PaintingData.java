@@ -5,19 +5,19 @@ import org.opencv.core.Mat;
 public class PaintingData {
   public String id;
   public Mat phash;
-  public Mat histogram;
+  public Mat keypointDescriptors;
 
-  public PaintingData(String id, String phashBase64, String histogramBase64) {
+  public PaintingData(String id, String phashBase64, String keypointDescriptorsBase64) {
     this.id = id;
 
     byte[] phashArray = (byte[]) SerializationUtils.fromBase64String(phashBase64);
-    float[] histogramArray = (float[]) SerializationUtils.fromBase64String(histogramBase64);
+    byte[] descriptorsArray = (byte[]) SerializationUtils.fromBase64String(keypointDescriptorsBase64);
 
     phash = new Mat(Constants.phashRows, Constants.phashCols, Constants.phashType);
-    histogram = new Mat(Constants.histRows, Constants.histCols, Constants.histType);
+    keypointDescriptors = new Mat(Constants.descriptorRows, Constants.descriptorCols, Constants.descriptorType);
 
     phash.put(0, 0, phashArray);
-    histogram.put(0, 0, histogramArray);
+    keypointDescriptors.put(0, 0, descriptorsArray);
   }
 
   @Override
@@ -25,7 +25,7 @@ public class PaintingData {
     return "PaintingData{" +
         "\nid='" + id + '\'' +
         "\nphash=" + phash.dump() +
-        "\nhistogram=" + histogram.dump() +
+        "\ndescriptors=" + keypointDescriptors.dump() +
         "\n}";
   }
 }

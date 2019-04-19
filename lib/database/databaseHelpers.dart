@@ -51,7 +51,7 @@ class DatabaseHelper {
               CREATE TABLE ${PaintingData.tableName} (
                 ${PaintingData.columnId} TEXT PRIMARY KEY,
                 ${PaintingData.columnPhash} TEXT NOT NULL,
-                ${PaintingData.columnHistogram} TEXT NOT NULL,
+                ${PaintingData.columnDescriptors} TEXT NOT NULL,
                 CONSTRAINT fk_id
                   FOREIGN KEY(${PaintingData.columnId}) 
                   REFERENCES ${Painting.tableName}(${Painting.columnId})
@@ -105,7 +105,8 @@ class DatabaseHelper {
       String museumId) async {
     Database db = await database;
     return db.rawQuery('''
-      SELECT pd.${PaintingData.columnId}, pd.${PaintingData.columnHistogram}, pd.${PaintingData.columnPhash}
+      SELECT pd.${PaintingData.columnId}, pd.${PaintingData.columnPhash}, 
+             pd.${PaintingData.columnDescriptors}
       FROM ${Painting.tableName} p INNER JOIN ${PaintingData.tableName} pd
         ON p.${Painting.columnId} = pd.${PaintingData.columnId}
       WHERE ${Painting.columnMuseum} = ?

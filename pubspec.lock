@@ -78,6 +78,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.2"
+  dart_config:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: a7ed88a4793e094a4d5d5c2d88a89e55510accde
+      url: "https://github.com/MarkOSullivan94/dart_config.git"
+    source: git
+    version: "0.5.0"
   firebase_core:
     dependency: transitive
     description:
@@ -104,6 +113,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.7"
+  flutter_launcher_icons:
+    dependency: "direct dev"
+    description:
+      name: flutter_launcher_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.7.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -268,6 +284,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.3.1"
+  yaml:
+    dependency: transitive
+    description:
+      name: yaml
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.15"
 sdks:
   dart: ">=2.1.0 <3.0.0"
   flutter: ">=1.2.1 <2.0.0"
