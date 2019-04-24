@@ -1,7 +1,9 @@
 package com.openmg.open_museum_guide;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -36,9 +38,9 @@ import io.flutter.util.PathUtils;
 
 public class MainActivity extends FlutterActivity {
   private static final String CHANNEL = "com.openmg.open_museum_guide/opencv";
-  private PHash pHashClass;
-  private ORB orb;
-  private DescriptorMatcher matcher;
+  private static PHash pHashClass;
+  private static ORB orb;
+  private static DescriptorMatcher matcher;
 
   private Map<String, PaintingData> paintingDataList;
 
@@ -64,6 +66,10 @@ public class MainActivity extends FlutterActivity {
 
   static {
     System.loadLibrary("opencv_java3");
+    pHashClass = PHash.create();
+    orb = ORB.create();
+    orb.setMaxFeatures(Constants.descriptorRows);
+    matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
   }
 
   private void print(String str) {
@@ -74,10 +80,6 @@ public class MainActivity extends FlutterActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     GeneratedPluginRegistrant.registerWith(this);
-    pHashClass = PHash.create();
-    orb = ORB.create();
-    orb.setMaxFeatures(Constants.descriptorRows);
-    matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
 
     new MethodChannel(getFlutterView(), CHANNEL).setMethodCallHandler(
         (call, result) -> {
@@ -176,7 +178,7 @@ public class MainActivity extends FlutterActivity {
     result.success(true);
   }
 
-  private ImgDataMat generateImageDataMat(Mat imgMat) {
+  private static ImgDataMat generateImageDataMat(Mat imgMat) {
     // Compute pHash
     Mat phashMat = new Mat();
     pHashClass.compute(imgMat, phashMat);
@@ -189,7 +191,7 @@ public class MainActivity extends FlutterActivity {
     return new ImgDataMat(phashMat, descriptors);
   }
 
-  private ImgDataString generateImageDataString(Mat imgMat) {
+  private static ImgDataString generateImageDataString(Mat imgMat) {
     ImgDataMat imgDataMat = generateImageDataMat(imgMat);
 
     // Convert from Mat to base 64 strings
@@ -206,23 +208,44 @@ public class MainActivity extends FlutterActivity {
   }
 
   private void generateImageData(MethodCall call, MethodChannel.Result result) {
-    HashMap args = (HashMap) call.arguments;
-    List<Map<String, String>> paintings = (List<Map<String, String>>) args.get("paintings");
+    new GenerateImageDataTask(call, result).execute(getApplicationContext());
+  }
 
-    for (Map<String, String> painting : paintings) {
-      String imagePath = painting.get("imagePath");
-      String appDir = PathUtils.getDataDirectory(getApplicationContext());
+  private static class GenerateImageDataTask extends AsyncTask<Context, Void, List<Map<String, String>>> {
+    private MethodChannel.Result result;
+    private List<Map<String, String>> paintings;
 
-      Mat imgMat = Imgcodecs.imread(appDir + "/" + imagePath);
-      Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_BGR2RGB);
+    public GenerateImageDataTask(MethodCall call, MethodChannel.Result result) {
+      this.result = result;
 
-      ImgDataString imgDataString = generateImageDataString(imgMat);
-      painting.put("phash", imgDataString.phash);
-      painting.put("descriptors", imgDataString.descriptors);
-      painting.remove("imagePath");
+      HashMap args = (HashMap) call.arguments;
+      this.paintings = (List<Map<String, String>>) args.get("paintings");
     }
 
-    result.success(paintings);
+    @Override
+    protected List<Map<String, String>> doInBackground(Context... contexts) {
+      Context context = contexts[0];
+      String appDir = PathUtils.getDataDirectory(context);
+
+      for (Map<String, String> painting : paintings) {
+        String imagePath = painting.get("imagePath");
+
+        Mat imgMat = Imgcodecs.imread(appDir + "/" + imagePath);
+        Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_BGR2RGB);
+
+        ImgDataString imgDataString = generateImageDataString(imgMat);
+        painting.put("phash", imgDataString.phash);
+        painting.put("descriptors", imgDataString.descriptors);
+        painting.remove("imagePath");
+      }
+
+      return paintings;
+    }
+
+    @Override
+    protected void onPostExecute(List<Map<String, String>> pnts) {
+      result.success(pnts);
+    }
   }
 
   private void runEdgeDetectionOnImage(MethodCall call, MethodChannel.Result result) {

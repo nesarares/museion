@@ -30,7 +30,7 @@ class LoadingService {
   }
 
   Future<void> unloadMuseumData() async {
-    await platform.invokeMethod("unloadPaintingsData");
+    // await platform.invokeMethod("unloadPaintingsData");
     _dataLoadedSubject.add(false);
   }
 
