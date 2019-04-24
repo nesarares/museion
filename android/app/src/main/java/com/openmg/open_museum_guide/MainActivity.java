@@ -11,8 +11,6 @@ import org.opencv.core.CvType;
 import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.ORB;
@@ -25,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -94,6 +91,9 @@ public class MainActivity extends FlutterActivity {
             case "detectPainting":
               detectPainting(call, result);
               break;
+            case "unloadPaintingsData":
+              unloadPaintingsData(call, result);
+              break;
             default:
               result.notImplemented();
           }
@@ -148,6 +148,12 @@ public class MainActivity extends FlutterActivity {
     print("======== Top 5 results ========");
     print(matchedKeypoints.subList(0, 5).toString());
     result.success(matchedKeypoints.get(0).first);
+  }
+
+  private void unloadPaintingsData(MethodCall call, MethodChannel.Result result) {
+    paintingDataList = null;
+    print("Unloaded data.");
+    result.success(true);
   }
 
   private void loadPaintingsData(MethodCall call, MethodChannel.Result result) {

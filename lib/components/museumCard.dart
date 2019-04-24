@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
@@ -210,8 +211,10 @@ class _MuseumCardState extends State<MuseumCard> {
     if (saveDir.existsSync()) saveDir.deleteSync(recursive: true);
     await dbLocal.deletePaintingsByMuseum(widget.museumId);
 
-    Future.delayed(const Duration(milliseconds: 450), checkDownloaded);
-    // checkDownloaded();
+    Future.delayed(const Duration(milliseconds: 450), () async {
+      await loadingService.unloadMuseumData();
+      checkDownloaded();
+    });
   }
 
   @override
@@ -279,7 +282,7 @@ class _MuseumCardState extends State<MuseumCard> {
                                           DownloadState.NOT_DOWNLOADED,
                                       child: InkWell(
                                           onTap: onDownload,
-                                          child: Icon(Icons.file_download,
+                                          child: Icon(FeatherIcons.download,
                                               color: Colors.white))),
                                   Visibility(
                                       visible: downloadState ==
@@ -299,7 +302,7 @@ class _MuseumCardState extends State<MuseumCard> {
                                           DownloadState.DOWNLOADED,
                                       child: InkWell(
                                           onTap: onDeleteData,
-                                          child: Icon(Icons.delete_forever,
+                                          child: Icon(FeatherIcons.trash,
                                               color: Colors.white)))
                                 ]))
                           ]))),
