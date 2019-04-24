@@ -11,9 +11,26 @@ class DetectionService {
   static final DetectionService instance =
       DetectionService._privateConstructor();
 
+  static const int DETECT_MAX_SIZE = 720;
   static final DatabaseHelper dbLocal = DatabaseHelper.instance;
   static const platform =
       const MethodChannel('com.openmg.open_museum_guide/opencv');
+
+  Uint8List imageToByteListFloat32(
+      img.Image image, int inputSize, double mean, double std) {
+    var convertedBytes = Float32List(1 * inputSize * inputSize * 3);
+    var buffer = Float32List.view(convertedBytes.buffer);
+    int pixelIndex = 0;
+    for (var i = 0; i < inputSize; i++) {
+      for (var j = 0; j < inputSize; j++) {
+        var pixel = image.getPixel(j, i);
+        buffer[pixelIndex++] = (img.getRed(pixel) - mean) / std;
+        buffer[pixelIndex++] = (img.getGreen(pixel) - mean) / std;
+        buffer[pixelIndex++] = (img.getBlue(pixel) - mean) / std;
+      }
+    }
+    return convertedBytes.buffer.asUint8List();
+  }
 
   Uint8List _imageToByteListUint8(img.Image image) {
     int width = image.width;
@@ -38,10 +55,22 @@ class DetectionService {
   }
 
   Future<List<dynamic>> _detectObjectFile(File image) async {
+    // img.Image newImage = await _imageFromFile(image);
+    // int width = -1;
+    // int height = -1;
+    // if (newImage.width > newImage.height) {
+    //   width = DETECT_MAX_SIZE;
+    // } else {
+    //   height = DETECT_MAX_SIZE;
+    // }
+    // newImage = img.copyResize(newImage, width, height);
+
+    // Uint8List binary = imageToByteListFloat32(newImage, 224, 127.5, 127.5);
+
+    // List<dynamic> recognitions = await Tflite.detectObjectOnBinary(
+    //     binary: binary, numResultsPerClass: 1, asynch: true);
     List<dynamic> recognitions = await Tflite.detectObjectOnImage(
-      path: image.path,
-      numResultsPerClass: 1,
-    );
+        path: image.path, numResultsPerClass: 1, asynch: true);
 
     return recognitions;
   }

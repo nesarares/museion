@@ -280,10 +280,12 @@ packages:
   tflite:
     dependency: "direct main"
     description:
-      path: flutter_tflite
-      relative: true
-    source: path
-    version: "1.0.1"
+      path: "."
+      ref: HEAD
+      resolved-ref: aefbb36ff92dacfbae447d89e3883efcecf6d0d3
+      url: "https://github.com/nesarares/flutter_tflite"
+    source: git
+    version: "1.0.3"
   typed_data:
     dependency: transitive
     description:
