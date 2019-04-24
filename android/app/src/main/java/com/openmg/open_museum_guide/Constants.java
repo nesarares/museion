@@ -10,5 +10,5 @@ public class Constants {
   public static final int descriptorRows = 150;
   public static final int descriptorCols = 32;
   public static final int imageType = CvType.CV_8UC3;
-  public static final int keypointCheckListSize = 100;
+  public static final int keypointCheckListSize = 200;
 }
