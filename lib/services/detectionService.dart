@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:open_museum_guide/database/databaseHelpers.dart';
 import 'package:tflite/tflite.dart';
@@ -94,8 +95,63 @@ class DetectionService {
     List bytes = _imageToByteListUint8(croppedImage);
     String id = await platform.invokeMethod<String>(
         "detectPainting", {"bytes": bytes, "width": w, "height": h});
-    stopwatch.stop();
 
+    stopwatch.stop();
+    print("Recognition took: ${stopwatch.elapsedMilliseconds} ms.");
+
+    return id;
+  }
+
+  Future<List<dynamic>> _detectObjectFrame(
+      List<Uint8List> bytesList, width, height) async {
+    List<dynamic> recognitions = await Tflite.detectObjectOnFrame(
+        bytesList: bytesList,
+        numResultsPerClass: 1,
+        imageHeight: height,
+        imageWidth: width,
+        asynch: true);
+
+    return recognitions;
+  }
+
+  Future<String> recognizePaintingStream(CameraImage image) async {
+    // Detect painting in picture
+    var bytesList = image.planes.map((plane) {
+      return plane.bytes;
+    }).toList();
+
+    List<dynamic> detections =
+        await _detectObjectFrame(bytesList, image.width, image.height);
+    if (detections.length == 0) {
+      print("No paintings detected");
+      return null; // no painting detected
+    }
+    print(detections);
+
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.start();
+
+    Map<dynamic, dynamic> detection = detections[0];
+    int x = ((detection["rect"]["x"] as double) * image.width).round();
+    int y = ((detection["rect"]["y"] as double) * image.height).round();
+    int w = ((detection["rect"]["w"] as double) * image.width).round();
+    int h = ((detection["rect"]["h"] as double) * image.height).round();
+
+    print(
+        'width: ${image.width}, height: ${image.height}, x: $x, y: $y, w: $w, h: $h');
+
+    String id = await platform.invokeMethod<String>("detectPaintingFrame", {
+      "bytes": bytesList,
+      "width": image.width,
+      "height": image.height,
+      "x": x,
+      "y": y,
+      "w": w,
+      "h": h
+    });
+    print(id);
+
+    stopwatch.stop();
     print("Recognition took: ${stopwatch.elapsedMilliseconds} ms.");
 
     return id;

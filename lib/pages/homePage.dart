@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadData() async {
     await loadingService.loadMuseumData();
     await loadingService.loadModel();
+    await loadingService.loadCameras();
     setState(() {
       isLoading = false;
     });

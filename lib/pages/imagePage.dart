@@ -6,6 +6,7 @@ import 'package:open_museum_guide/components/paintingCard.dart';
 import 'package:open_museum_guide/database/databaseHelpers.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
+import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/utils/roundIconButton.dart';
 import 'package:after_layout/after_layout.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,11 +22,11 @@ class ImagePage extends StatefulWidget {
 
 class _ImagePageState extends State<ImagePage>
     with AfterLayoutMixin<ImagePage> {
+  static final LoadingService loadingService = LoadingService.instance;
   static final DetectionService detectionService = DetectionService.instance;
   static final DatabaseHelper dbLocal = DatabaseHelper.instance;
 
   Painting painting;
-  String savedDirPath;
 
   @override
   void initState() {
@@ -45,9 +46,7 @@ class _ImagePageState extends State<ImagePage>
   }
 
   Future<void> loadPainting(String id) async {
-    Painting p = await dbLocal.getPaintingById(id);
-    savedDirPath = (await getApplicationDocumentsDirectory()).path;
-    p.imagePath = "$savedDirPath/${p.imagePath}";
+    Painting p = await loadingService.loadPainting(id);
     setState(() {
       painting = p;
     });

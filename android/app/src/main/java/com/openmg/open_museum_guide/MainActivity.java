@@ -1,11 +1,19 @@
 package com.openmg.open_museum_guide;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.renderscript.Type;
 import android.util.Log;
 import android.util.Pair;
 
+import org.opencv.android.Utils;
 import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
@@ -16,6 +24,7 @@ import org.opencv.img_hash.PHash;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +39,7 @@ import io.flutter.util.PathUtils;
 
 public class MainActivity extends FlutterActivity {
   private static final String CHANNEL = "com.openmg.open_museum_guide/opencv";
+  private static final int THRESHOLD_KEYPOINTS = 10;
   private static PHash pHashClass;
   private static ORB orb;
   private static DescriptorMatcher matcher;
@@ -84,6 +94,9 @@ public class MainActivity extends FlutterActivity {
               break;
             case "detectPainting":
               detectPainting(call, result);
+              break;
+            case "detectPaintingFrame":
+              detectPaintingFrame(call, result);
               break;
             case "unloadPaintingsData":
               unloadPaintingsData(call, result);
@@ -153,6 +166,67 @@ public class MainActivity extends FlutterActivity {
     new DetectPaintingTask(call, result, paintingDataList).execute();
   }
 
+  private void detectPaintingFrame(MethodCall call, MethodChannel.Result result) {
+    HashMap args = (HashMap) call.arguments;
+    List<byte[]> bytesList = (ArrayList<byte[]>) args.get("bytes");
+    int width = (int) args.get("width");
+    int height = (int) args.get("height");
+    int x = (int) args.get("x");
+    int y = (int) args.get("y");
+    int w = (int) args.get("w");
+    int h = (int) args.get("h");
+    int rotation = 90;
+
+    ByteBuffer Y = ByteBuffer.wrap(bytesList.get(0));
+    ByteBuffer U = ByteBuffer.wrap(bytesList.get(1));
+    ByteBuffer V = ByteBuffer.wrap(bytesList.get(2));
+
+    int Yb = Y.remaining();
+    int Ub = U.remaining();
+    int Vb = V.remaining();
+
+    byte[] data = new byte[Yb + Ub + Vb];
+
+    Y.get(data, 0, Yb);
+    V.get(data, Yb, Vb);
+    U.get(data, Yb + Vb, Ub);
+
+    Bitmap bitmapRaw = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    Allocation bmData = renderScriptNV21ToRGBA888(
+        getApplicationContext(),
+        width,
+        height,
+        data);
+    bmData.copyTo(bitmapRaw);
+
+    bitmapRaw = Bitmap.createBitmap(bitmapRaw, x, y, w, h);
+    Matrix matrix = new Matrix();
+    matrix.postRotate(rotation);
+    bitmapRaw = Bitmap.createBitmap(bitmapRaw, 0, 0, bitmapRaw.getWidth(), bitmapRaw.getHeight(), matrix, true);
+
+    Mat imgMat = new Mat();
+    Utils.bitmapToMat(bitmapRaw, imgMat);
+
+    new DetectPaintingTask(call, result, paintingDataList, imgMat).execute();
+  }
+
+  public Allocation renderScriptNV21ToRGBA888(Context context, int width, int height, byte[] nv21) {
+    RenderScript rs = RenderScript.create(context);
+    ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+
+    Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(nv21.length);
+    Allocation in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
+
+    Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
+    Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
+
+    in.copyFrom(nv21);
+
+    yuvToRgbIntrinsic.setInput(in);
+    yuvToRgbIntrinsic.forEach(out);
+    return out;
+  }
+
   private void generateImageData(MethodCall call, MethodChannel.Result result) {
     new GenerateImageDataTask(call, result).execute(getApplicationContext());
   }
@@ -162,6 +236,7 @@ public class MainActivity extends FlutterActivity {
     private int width, height;
     private byte[] bytes;
     private Map<String, PaintingData> paintingDataList;
+    private Mat imgMat;
 
     public DetectPaintingTask(MethodCall call, MethodChannel.Result result, Map<String, PaintingData> paintingDataList) {
       this.result = result;
@@ -171,13 +246,20 @@ public class MainActivity extends FlutterActivity {
       this.bytes = (byte[]) args.get("bytes");
       this.width = (int) args.get("width");
       this.height = (int) args.get("height");
+      this.imgMat = new Mat(height, width, Constants.imageType);
+      imgMat.put(0, 0, bytes);
+    }
+
+    public DetectPaintingTask(MethodCall call, MethodChannel.Result result, Map<String, PaintingData> paintingDataList, Mat imgMat) {
+      this.result = result;
+      this.paintingDataList = paintingDataList;
+
+      HashMap args = (HashMap) call.arguments;
+      this.imgMat = imgMat;
     }
 
     @Override
     protected String doInBackground(Void... voids) {
-      Mat imgMat = new Mat(height, width, Constants.imageType);
-      imgMat.put(0, 0, bytes);
-
       ImgDataMat imgData = generateImageDataMat(imgMat);
 
       List<Pair<String, Double>> distancesPhash = new ArrayList<>();
@@ -217,7 +299,9 @@ public class MainActivity extends FlutterActivity {
 
       print("======== Top 5 results ========");
       print(matchedKeypoints.subList(0, 5).toString());
-      return matchedKeypoints.get(0).first;
+      if (matchedKeypoints.get(0).second > THRESHOLD_KEYPOINTS)
+        return matchedKeypoints.get(0).first;
+      return null;
     }
 
     @Override

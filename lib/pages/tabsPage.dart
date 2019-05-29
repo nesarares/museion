@@ -4,10 +4,12 @@ import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_museum_guide/pages/cameraPage.dart';
 import 'package:open_museum_guide/pages/imagePage.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
 
 import 'package:open_museum_guide/tabs/homeTab.dart';
+import 'package:open_museum_guide/tabs/museumInfoTab.dart';
 import 'package:open_museum_guide/tabs/settingsTab.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 import 'package:open_museum_guide/utils/fabBottomAppBar.dart';
@@ -27,6 +29,8 @@ class _TabsPageState extends State<TabsPage> {
     switch (index) {
       case 0:
         return HomeTab(onErrorTap: () => this.openErrorNoData(context));
+      case 1:
+        return MuseumInfoTab();
       case 3:
         return SettingsTab();
       default:
@@ -41,6 +45,11 @@ class _TabsPageState extends State<TabsPage> {
   }
 
   Future<void> openCamera() async {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CameraPage()));
+  }
+
+  Future<void> openGallery() async {
     double maxWidth = MediaQuery.of(context).size.width;
     double maxHeight = MediaQuery.of(context).size.height;
     File image = await ImagePicker.pickImage(

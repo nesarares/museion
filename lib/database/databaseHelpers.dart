@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/models/paintingData.dart';
 import 'package:path/path.dart';
@@ -43,7 +44,10 @@ class DatabaseHelper {
                 ${Painting.columnYear} TEXT,
                 ${Painting.columnCopyright} TEXT,
                 ${Painting.columnMedium} TEXT,
-                ${Painting.columnDimensions} TEXT
+                ${Painting.columnDimensions} TEXT,
+                CONSTRAINT fk_id
+                  FOREIGN KEY(${Painting.columnMuseum}) 
+                  REFERENCES ${Museum.tableName}(${Museum.columnId})
               )
               ''');
 
@@ -56,6 +60,21 @@ class DatabaseHelper {
                   FOREIGN KEY(${PaintingData.columnId}) 
                   REFERENCES ${Painting.tableName}(${Painting.columnId})
                   ON DELETE CASCADE
+              )
+              ''');
+
+    await db.execute('''
+              CREATE TABLE ${Museum.tableName} (
+                ${Museum.columnId} TEXT PRIMARY KEY,
+                ${Museum.columnTitle} TEXT NOT NULL,
+                ${Museum.columnImageUrl} TEXT NOT NULL,
+                ${Museum.columnAddress} TEXT,
+                ${Museum.columnCity} TEXT,
+                ${Museum.columnCoordinates} TEXT,
+                ${Museum.columnCountry} TEXT,
+                ${Museum.columnFacilities} TEXT,
+                ${Museum.columnHours} TEXT,
+                ${Museum.columnWebsite} TEXT
               )
               ''');
   }
@@ -152,5 +171,34 @@ class DatabaseHelper {
       ON ${Painting.tableName}.${Painting.columnId} = ${PaintingData.tableName}.${PaintingData.columnId}
       WHERE ${Painting.tableName}.${Painting.columnMuseum} = ?
       ''', [museumId]));
+  }
+
+  Future<void> insertMuseums(List<Museum> museums) async {
+    Database db = await database;
+    var batch = db.batch();
+    museums.forEach((museum) {
+      batch.insert(Museum.tableName, museum.toMap(coordinatesString: true),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Museum>> getMuseumsSummary() async {
+    Database db = await database;
+    var maps = await db.rawQuery('''
+      SELECT ${Museum.columnId}, ${Museum.columnTitle}, ${Museum.columnImageUrl}
+      FROM ${Museum.tableName}
+    ''');
+    return maps.map((m) => Museum.fromMap(m)).toList();
+  }
+
+  Future<Museum> getMuseumById(String id) async {
+    Database db = await database;
+    List<Map> maps = await db.query(Museum.tableName,
+        where: '${Museum.columnId} = ?', whereArgs: [id]);
+    if (maps.length > 0) {
+      return Museum.fromMap(maps.first, coordinatesString: true);
+    }
+    return null;
   }
 }

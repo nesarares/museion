@@ -8,20 +8,22 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
+import 'package:open_museum_guide/services/museumService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:open_museum_guide/database/databaseHelpers.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 
 class MuseumCard extends StatefulWidget {
-  final String imagePath;
+  final String imageUrl;
   final String title;
   final String museumId;
 
-  MuseumCard({Key key, this.imagePath, this.title, this.museumId})
+  MuseumCard({Key key, this.imageUrl, this.title, this.museumId})
       : super(key: key);
 
   _MuseumCardState createState() => _MuseumCardState();
@@ -31,6 +33,7 @@ enum DownloadState { DOWNLOADING, DOWNLOADED, NOT_DOWNLOADED, DELETING }
 
 class _MuseumCardState extends State<MuseumCard> {
   static final LoadingService loadingService = LoadingService.instance;
+  static final MuseumService museumService = MuseumService.instance;
 
   static final double columnTextGap = 6.0;
 
@@ -46,7 +49,7 @@ class _MuseumCardState extends State<MuseumCard> {
   int downloadStep = 1;
   int recordsCount = 0;
 
-  String downloadTaskId;
+  String downloadTaskId = '';
 
   @override
   void initState() {
@@ -188,7 +191,7 @@ class _MuseumCardState extends State<MuseumCard> {
         .toList();
 
     await dbLocal.insertPaintingsDataMap(paintings);
-    if (widget.museumId == loadingService.museumId) {
+    if (widget.museumId == museumService.museumId) {
       await loadingService.loadMuseumData();
     }
     await checkDownloaded();
@@ -212,7 +215,7 @@ class _MuseumCardState extends State<MuseumCard> {
     await dbLocal.deletePaintingsByMuseum(widget.museumId);
 
     Future.delayed(const Duration(milliseconds: 450), () async {
-      await loadingService.unloadMuseumData();
+      await loadingService.unloadMuseumData(widget.museumId);
       checkDownloaded();
     });
   }
@@ -233,7 +236,7 @@ class _MuseumCardState extends State<MuseumCard> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                        image: ExactAssetImage(widget.imagePath),
+                        image: CachedNetworkImageProvider(widget.imageUrl),
                         fit: BoxFit.cover),
                   ),
                   child: Container(

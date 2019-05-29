@@ -1,5 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/models/painting.dart';
+import 'package:open_museum_guide/services/cameraService.dart';
+import 'package:open_museum_guide/services/museumService.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tflite/tflite.dart';
 
@@ -7,20 +11,19 @@ class LoadingService {
   LoadingService._privateConstructor();
   static final LoadingService instance = LoadingService._privateConstructor();
 
+  static final MuseumService museumService = MuseumService.instance;
+  static final CameraService cameraService = CameraService.instance;
   final DatabaseHelper dbLocal = DatabaseHelper.instance;
   static const platform =
       const MethodChannel('com.openmg.open_museum_guide/opencv');
 
-  String museumId = "GWNdYOmSpgjkLxnLSroV"; // orsay
-  // String museumId = "4bGQk6lrv9cyu0y7l4FZ"; // test
+  BehaviorSubject<bool> _dataLoadedSubject = BehaviorSubject.seeded(false);
 
-  BehaviorSubject _dataLoadedSubject = BehaviorSubject.seeded(false);
-
-  Observable get isDataLoaded$ => _dataLoadedSubject.stream;
-  Observable get isDataLoaded => _dataLoadedSubject.value;
+  Observable<bool> get isDataLoaded$ => _dataLoadedSubject.stream;
+  bool get isDataLoaded => _dataLoadedSubject.value;
 
   Future<void> loadMuseumData() async {
-    List data = await dbLocal.getPaintingsDataByMuseum(museumId);
+    List data = await dbLocal.getPaintingsDataByMuseum(museumService.museumId);
     if (data.length == 0) {
       _dataLoadedSubject.add(false);
     } else {
@@ -29,14 +32,27 @@ class LoadingService {
     }
   }
 
-  Future<void> unloadMuseumData() async {
+  Future<void> unloadMuseumData(String id) async {
     // await platform.invokeMethod("unloadPaintingsData");
-    _dataLoadedSubject.add(false);
+    if (museumService.activeMuseum.id == id) {
+      _dataLoadedSubject.add(false);
+    }
   }
 
   Future<String> loadModel() async {
     return Tflite.loadModel(
         model: "assets/graph/paintings.tflite",
         labels: "assets/graph/paintings.txt");
+  }
+
+  Future<void> loadCameras() async {
+    await cameraService.loadCameras();
+  }
+
+  Future<Painting> loadPainting(String id) async {
+    Painting p = await dbLocal.getPaintingById(id);
+    String savedDirPath = (await getApplicationDocumentsDirectory()).path;
+    p.imagePath = "$savedDirPath/${p.imagePath}";
+    return p;
   }
 }
