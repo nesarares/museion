@@ -6,16 +6,22 @@ import 'package:open_museum_guide/pages/paintingDetailsPage.dart';
 
 class PaintingCard extends StatelessWidget {
   final Painting painting;
+  final Function beforeNavigate;
+  final Function afterNavigate;
   final double textGap = 8.0;
   final double fontSizeCard = 13;
 
-  PaintingCard({Key key, this.painting}) : super(key: key);
+  PaintingCard(
+      {Key key, this.painting, this.beforeNavigate, this.afterNavigate})
+      : super(key: key);
 
-  void onTapCard(BuildContext context) {
-    Navigator.push(
+  Future<void> onTapCard(BuildContext context) async {
+    if (beforeNavigate != null) beforeNavigate();
+    await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => PaintingDetailsPage(painting: painting)));
+    if (afterNavigate != null) afterNavigate();
   }
 
   @override

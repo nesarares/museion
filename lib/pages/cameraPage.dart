@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
 import 'package:open_museum_guide/models/painting.dart';
+import 'package:open_museum_guide/pages/imagePage.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
@@ -20,6 +24,7 @@ class _CameraPageState extends State<CameraPage> {
   CameraImage currentImage;
   String detectedId;
   Painting painting;
+  bool paused = false;
 
   @override
   void initState() {
@@ -45,7 +50,7 @@ class _CameraPageState extends State<CameraPage> {
   }
 
   void startDetection() async {
-    if (!mounted) {
+    if (!mounted || paused || currentImage != null) {
       return;
     }
     controller.startImageStream((image) {
@@ -59,15 +64,17 @@ class _CameraPageState extends State<CameraPage> {
 
   Future<void> detectOnImage() async {
     print('${currentImage.width} x ${currentImage.height}');
+    if (!mounted) return;
     String id = await detectionService.recognizePaintingStream(currentImage);
-    currentImage = null;
     if (detectedId != id) {
       Painting p = id == null ? null : await loadingService.loadPainting(id);
+      if (!mounted) return;
       setState(() {
         detectedId = id;
         painting = p;
       });
     }
+    currentImage = null;
     startDetection();
   }
 
@@ -75,6 +82,15 @@ class _CameraPageState extends State<CameraPage> {
   void dispose() {
     controller?.dispose();
     super.dispose();
+  }
+
+  void beforeNavigate() {
+    paused = true;
+  }
+
+  void afterNavigate() {
+    paused = false;
+    startDetection();
   }
 
   void goBack() {
@@ -103,8 +119,9 @@ class _CameraPageState extends State<CameraPage> {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: PaintingCard(
-                  painting: painting,
-                ),
+                    painting: painting,
+                    beforeNavigate: beforeNavigate,
+                    afterNavigate: afterNavigate),
               )
             ],
           ),
