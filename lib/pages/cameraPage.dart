@@ -1,11 +1,7 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
 import 'package:open_museum_guide/models/painting.dart';
-import 'package:open_museum_guide/pages/imagePage.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:open_museum_guide/services/loadingService.dart';

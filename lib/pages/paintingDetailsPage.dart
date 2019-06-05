@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/models/painting.dart';
-import 'package:open_museum_guide/utils/constants.dart';
 import 'package:open_museum_guide/utils/roundIconButton.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -88,7 +87,10 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                           //       imageProvider:
                           //           FileImage(File(widget.painting.imagePath))),
                           // )
-                          child: Image.file(File(widget.painting.imagePath)),
+                          child: Hero(
+                              tag: "painting",
+                              child:
+                                  Image.file(File(widget.painting.imagePath))),
                         )),
                       ))),
             ),

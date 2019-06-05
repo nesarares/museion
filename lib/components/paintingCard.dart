@@ -56,12 +56,16 @@ class PaintingCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              image: FileImage(File("${painting?.imagePath}")),
-                              fit: BoxFit.cover),
+                      Hero(
+                        tag: "painting",
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.3,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                                image:
+                                    FileImage(File("${painting?.imagePath}")),
+                                fit: BoxFit.cover),
+                          ),
                         ),
                       ),
                       Expanded(
