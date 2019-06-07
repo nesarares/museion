@@ -1,22 +1,33 @@
 import 'dart:io';
 
+import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/pages/paintingDetailsPage.dart';
+import 'package:open_museum_guide/services/paintingService.dart';
 
 class PaintingCard extends StatelessWidget {
   final Painting painting;
   final Function beforeNavigate;
   final Function afterNavigate;
+  final bool showMuseumName;
   final double textGap = 8.0;
   final double fontSizeCard = 13;
+  static final PaintingService paintingService = PaintingService.instance;
 
   PaintingCard(
-      {Key key, this.painting, this.beforeNavigate, this.afterNavigate})
+      {Key key,
+      this.painting,
+      this.beforeNavigate,
+      this.afterNavigate,
+      this.showMuseumName})
       : super(key: key);
 
   Future<void> onTapCard(BuildContext context) async {
-    if (beforeNavigate != null) beforeNavigate();
+    if (beforeNavigate != null) {
+      beforeNavigate();
+      await paintingService.addPaintingToHistory(painting);
+    }
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -40,7 +51,7 @@ class PaintingCard extends StatelessWidget {
         ),
       ),
       secondChild: Container(
-        margin: EdgeInsets.all(8),
+        margin: EdgeInsets.fromLTRB(8, 0, 8, 8),
         child: InkWell(
           onTap: () => onTapCard(context),
           child: Card(
@@ -57,7 +68,7 @@ class PaintingCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Hero(
-                        tag: "painting",
+                        tag: "${painting?.id}",
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.3,
                           decoration: BoxDecoration(
@@ -86,18 +97,43 @@ class PaintingCard extends StatelessWidget {
                                       fontSize: fontSizeCard,
                                       fontWeight: FontWeight.w700)),
                               SizedBox(height: textGap),
-                              Text("${painting?.year}",
-                                  style: TextStyle(
-                                      fontSize: fontSizeCard - 1,
-                                      fontWeight: FontWeight.w400)),
-                              SizedBox(height: textGap),
-                              Text(
-                                "${painting?.text?.substring(0, 50)}...",
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                    fontSize: fontSizeCard - 1.5,
-                                    fontWeight: FontWeight.w400),
+                              Visibility(
+                                visible: !showMuseumName,
+                                child: Text("${painting?.year}",
+                                    style: TextStyle(
+                                        fontSize: fontSizeCard - 1,
+                                        fontWeight: FontWeight.w400)),
                               ),
+                              Visibility(
+                                  visible: !showMuseumName,
+                                  child: SizedBox(height: textGap)),
+                              Visibility(
+                                visible: !showMuseumName,
+                                child: Text(
+                                  "${painting?.text?.substring(0, 50)}...",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                      fontSize: fontSizeCard - 1.5,
+                                      fontWeight: FontWeight.w400),
+                                ),
+                              ),
+                              Visibility(
+                                visible: showMuseumName,
+                                child: Row(
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child:
+                                          Icon(FeatherIcons.mapPin, size: 15),
+                                    ),
+                                    Text("${painting?.museum}",
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                            fontSize: fontSizeCard,
+                                            fontWeight: FontWeight.w400))
+                                  ],
+                                ),
+                              )
                             ],
                           ),
                         ),

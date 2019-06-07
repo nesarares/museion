@@ -1,19 +1,23 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'package:open_museum_guide/components/fabMenu.dart';
 import 'package:open_museum_guide/pages/cameraPage.dart';
 import 'package:open_museum_guide/pages/imagePage.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
+import 'package:open_museum_guide/tabs/historyTab.dart';
 import 'package:open_museum_guide/tabs/homeTab.dart';
 import 'package:open_museum_guide/tabs/museumInfoTab.dart';
 import 'package:open_museum_guide/tabs/settingsTab.dart';
 import 'package:open_museum_guide/utils/constants.dart';
-import 'package:open_museum_guide/utils/fabBottomAppBar.dart';
 import 'dart:math' as math;
+
+import 'package:unicorndial/unicorndial.dart';
 
 class TabsPage extends StatefulWidget {
   TabsPage({Key key}) : super(key: key);
@@ -23,26 +27,9 @@ class TabsPage extends StatefulWidget {
 
 class _TabsPageState extends State<TabsPage> {
   LoadingService loadingService = LoadingService.instance;
-  int _selectedTab = 0;
-
-  Widget _buildTab(int index) {
-    switch (index) {
-      case 0:
-        return HomeTab(onErrorTap: () => this.openErrorNoData(context));
-      case 1:
-        return MuseumInfoTab();
-      case 3:
-        return SettingsTab();
-      default:
-        return Column();
-    }
-  }
-
-  void _changeTab(int index) {
-    setState(() {
-      _selectedTab = index;
-    });
-  }
+  StreamController<int> indexcontroller = StreamController<int>.broadcast();
+  int selectedPage = 0;
+  final controller = PageController(initialPage: 0);
 
   Future<void> openCamera() async {
     Navigator.push(
@@ -90,77 +77,108 @@ class _TabsPageState extends State<TabsPage> {
     ).show(context);
   }
 
+  void onPageChanged(int pageIndex) {
+    indexcontroller.add(pageIndex);
+  }
+
+  void onItemSelected(int itemIndex) {
+    indexcontroller.add(itemIndex);
+    // controller.animateToPage(itemIndex,
+    //     duration: Duration(milliseconds: 300), curve: Curves.ease);
+    controller.jumpToPage(itemIndex);
+  }
+
+  @override
+  void dispose() {
+    indexcontroller.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(child: _buildTab(_selectedTab)),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: StreamBuilder<Object>(
-          stream: loadingService.isDataLoaded$,
-          builder: (ctx, snap) {
-            return FloatingActionButton(
-              onPressed: snap.hasData && snap.data
-                  ? openCamera
-                  : () => openErrorNoData(ctx),
-              tooltip: 'Open Camera',
-              child: Icon(FeatherIcons.camera, size: 30),
-              backgroundColor: snap.hasData && snap.data
-                  ? colors['primary']
-                  : colors['disabledGray'],
-              elevation: 4.0,
-            );
-            // var childButtons = List<UnicornButton>();
-            // childButtons.add(UnicornButton(
-            //     hasLabel: true,
-            //     labelText: "Camera",
-            //     currentButton: FloatingActionButton(
-            //       heroTag: "camera",
-            //       backgroundColor: Colors.blueAccent,
-            //       mini: true,
-            //       child: Icon(FeatherIcons.camera),
-            //       onPressed: openCamera,
-            //     )));
-            // childButtons.add(UnicornButton(
-            //     hasLabel: true,
-            //     labelText: "Gallery",
-            //     currentButton: FloatingActionButton(
-            //       heroTag: "gallery",
-            //       backgroundColor: Colors.blueAccent,
-            //       mini: true,
-            //       child: Icon(FeatherIcons.image),
-            //       onPressed: openGallery,
-            //     )));
-            // return Container(
-            //   margin: EdgeInsets.only(bottom: 10),
-            //   child: UnicornDialer(
-            //       hasNotch: true,
-
-            //       // backgroundColor: Color.fromRGBO(255, 255, 255, 0.6),
-            //       parentButtonBackground: snap.hasData && snap.data
-            //           ? colors['primary']
-            //           : colors['disabledGray'],
-            //       orientation: UnicornOrientation.VERTICAL,
-            //       parentButton: Icon(
-            //         FeatherIcons.camera,
-            //         size: 30,
-            //       ),
-            //       childButtons: snap.hasData && snap.data ? childButtons : []),
-            // );
-          }),
-      bottomNavigationBar: FABBottomAppBar(
-        onTabSelected: _changeTab,
-        notchedShape: CircularNotchedRectangle(),
-        color: colors['darkGray'],
-        selectedColor: colors['primary'],
-        items: [
-          FABBottomAppBarItem(iconData: FeatherIcons.home, text: 'Home '),
-          FABBottomAppBarItem(
-              iconData: FeatherIcons.helpCircle, text: 'Museum info'),
-          FABBottomAppBarItem(iconData: Icons.history, text: 'History'),
-          FABBottomAppBarItem(
-              iconData: FeatherIcons.download, text: 'Downloads'),
-        ],
-      ),
-    );
+        body: PageView(
+          controller: controller,
+          onPageChanged: onPageChanged,
+          children: <Widget>[
+            HomeTab(onErrorTap: () => this.openErrorNoData(context)),
+            MuseumInfoTab(),
+            HistoryTab(),
+            SettingsTab()
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: StreamBuilder<Object>(
+            stream: loadingService.isDataLoaded$,
+            builder: (ctx, snap) {
+              var childButtons = List<UnicornButton>();
+              childButtons.add(UnicornButton(
+                  hasLabel: true,
+                  labelText: "Camera",
+                  currentButton: FloatingActionButton(
+                    heroTag: "camera",
+                    backgroundColor: Colors.blueAccent,
+                    mini: true,
+                    child: Icon(FeatherIcons.camera),
+                    onPressed: openCamera,
+                  )));
+              childButtons.add(UnicornButton(
+                  hasLabel: true,
+                  labelText: "Gallery",
+                  currentButton: FloatingActionButton(
+                    heroTag: "gallery",
+                    backgroundColor: Colors.blueAccent,
+                    mini: true,
+                    child: Icon(FeatherIcons.image),
+                    onPressed: openGallery,
+                  )));
+              return Container(
+                margin: EdgeInsets.only(bottom: 10),
+                child: UnicornDialer(
+                    parentButtonBackground: snap.hasData && snap.data
+                        ? colors['primary']
+                        : colors['disabledGray'],
+                    orientation: UnicornOrientation.VERTICAL,
+                    parentButton: Icon(
+                      FeatherIcons.camera,
+                      size: 30,
+                    ),
+                    onMainButtonPressed: snap.hasData && snap.data
+                        ? () {}
+                        : () => openErrorNoData(ctx),
+                    childButtons:
+                        snap.hasData && snap.data ? childButtons : []),
+              );
+            }),
+        bottomNavigationBar: StreamBuilder(
+            stream: indexcontroller.stream,
+            initialData: 0,
+            builder: (c, snap) {
+              int currentindex = snap.data;
+              return BottomNavyBar(
+                selectedIndex: currentindex,
+                showElevation: true,
+                onItemSelected: onItemSelected,
+                items: [
+                  BottomNavyBarItem(
+                    icon: Icon(FeatherIcons.home),
+                    title: Text('Home'),
+                    activeColor: Colors.deepOrange,
+                  ),
+                  BottomNavyBarItem(
+                      icon: Icon(FeatherIcons.helpCircle),
+                      title: Text('Museum info'),
+                      activeColor: Colors.purpleAccent),
+                  BottomNavyBarItem(
+                      icon: Icon(Icons.history),
+                      title: Text('History'),
+                      activeColor: Colors.redAccent),
+                  BottomNavyBarItem(
+                      icon: Icon(FeatherIcons.download),
+                      title: Text('Downloads'),
+                      activeColor: Colors.blueAccent),
+                ],
+              );
+            }));
   }
 }

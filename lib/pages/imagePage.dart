@@ -83,6 +83,7 @@ class _ImagePageState extends State<ImagePage>
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: PaintingCard(
+                    beforeNavigate: () {},
                     painting: painting,
                   ),
                 )

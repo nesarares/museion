@@ -2,7 +2,9 @@ import 'package:flutter/services.dart';
 import 'package:open_museum_guide/database/databaseHelpers.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
+import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
+import 'package:open_museum_guide/services/paintingService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tflite/tflite.dart';
@@ -11,9 +13,12 @@ class LoadingService {
   LoadingService._privateConstructor();
   static final LoadingService instance = LoadingService._privateConstructor();
 
+  static final PaintingService paintingService = PaintingService.instance;
   static final MuseumService museumService = MuseumService.instance;
   static final CameraService cameraService = CameraService.instance;
+  static final DetectionService detectionService = DetectionService.instance;
   final DatabaseHelper dbLocal = DatabaseHelper.instance;
+
   static const platform =
       const MethodChannel('com.openmg.open_museum_guide/opencv');
 

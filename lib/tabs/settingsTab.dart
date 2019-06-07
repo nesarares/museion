@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/components/header.dart';
 import 'package:open_museum_guide/components/museumCard.dart';
 import 'package:open_museum_guide/database/databaseHelpers.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -55,11 +56,7 @@ class _SettingsTabState extends State<SettingsTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Container(
-          margin: EdgeInsets.fromLTRB(25, 55, 25, 10),
-          child:
-              Text("Download data for museums", style: TextStyle(fontSize: 16)),
-        ),
+        TextHeader(header: 'Download museum data'),
         // RaisedButton(
         //   onPressed: _deleteDatabase,
         //   child: Text("DeleteDatabase"),

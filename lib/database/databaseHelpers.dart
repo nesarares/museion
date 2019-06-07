@@ -45,6 +45,7 @@ class DatabaseHelper {
                 ${Painting.columnCopyright} TEXT,
                 ${Painting.columnMedium} TEXT,
                 ${Painting.columnDimensions} TEXT,
+                ${Painting.columnLastViewed} INTEGER,
                 CONSTRAINT fk_id
                   FOREIGN KEY(${Painting.columnMuseum}) 
                   REFERENCES ${Museum.tableName}(${Museum.columnId})
@@ -79,7 +80,12 @@ class DatabaseHelper {
               ''');
   }
 
-  // Database helper methods:
+  Future<int> removeAllRecords() async {
+    Database db = await database;
+    return db.delete(Painting.tableName);
+  }
+
+  // PAINTING
 
   Future<void> insertPaintingsMap(List<Map<String, dynamic>> paintings) async {
     Database db = await database;
@@ -101,14 +107,16 @@ class DatabaseHelper {
     return null;
   }
 
-  Future<PaintingData> getPaintingDataById(String id) async {
+  Future<int> updatePaintingLastViewedById(String id, int lastViewed) async {
     Database db = await database;
-    List<Map> maps = await db.query(PaintingData.tableName,
-        where: '${PaintingData.columnId} = ?', whereArgs: [id]);
-    if (maps.length > 0) {
-      return PaintingData.fromMap(maps.first);
-    }
-    return null;
+    // return (await db.update(Painting.tableName, paintingMap,
+    //     where: '${Painting.columnId} = ?',
+    //     whereArgs: [paintingMap[Painting.columnId]]));
+    return (await db.rawUpdate('''
+      UPDATE ${Painting.tableName} 
+      SET ${Painting.columnLastViewed} = ? 
+      WHERE ${Painting.columnId} = ?
+      ''', [lastViewed, id]));
   }
 
   Future<List<Map<String, dynamic>>> getPaintingsWithColumnsByMuseum(
@@ -118,6 +126,48 @@ class DatabaseHelper {
         columns: columns,
         where: '${Painting.columnMuseum} = ?',
         whereArgs: [museumId]));
+  }
+
+  Future<int> countPaintingsByMuseum(String museumId) async {
+    Database db = await database;
+    return Sqflite.firstIntValue(await db.rawQuery('''
+      SELECT COUNT(*) 
+      FROM ${Painting.tableName}
+      WHERE ${Painting.columnMuseum} = ?
+      ''', [museumId]));
+  }
+
+  Future<int> deletePaintingsByMuseum(String museumId) async {
+    Database db = await database;
+    return db.delete(Painting.tableName,
+        where: '${Painting.columnMuseum} = ?', whereArgs: [museumId]);
+  }
+
+  Future<List<Painting>> getPaintingsViewed() async {
+    Database db = await database;
+    // List<Map<String, dynamic>> query = (await db.query(Painting.tableName,
+    //     where: '${Painting.columnLastViewed} NOT NULL',
+    //     orderBy: '${Painting.columnLastViewed} DESC'));
+    List<Map<String, dynamic>> query = await db.rawQuery('''
+      SELECT p.*, m.${Museum.columnTitle} as ${Painting.columnMuseum}
+      FROM ${Painting.tableName} p INNER JOIN ${Museum.tableName} m
+        ON p.${Painting.columnMuseum} = m.${Museum.columnId}
+      WHERE ${Painting.columnLastViewed} NOT NULL
+      ORDER BY ${Painting.columnLastViewed} DESC
+    ''');
+    return query.map((m) => Painting.fromMap(m)).toList();
+  }
+
+  // PAINTING DATA
+
+  Future<PaintingData> getPaintingDataById(String id) async {
+    Database db = await database;
+    List<Map> maps = await db.query(PaintingData.tableName,
+        where: '${PaintingData.columnId} = ?', whereArgs: [id]);
+    if (maps.length > 0) {
+      return PaintingData.fromMap(maps.first);
+    }
+    return null;
   }
 
   Future<List<Map<String, dynamic>>> getPaintingsDataByMuseum(
@@ -130,26 +180,6 @@ class DatabaseHelper {
         ON p.${Painting.columnId} = pd.${PaintingData.columnId}
       WHERE ${Painting.columnMuseum} = ?
     ''', [museumId]);
-  }
-
-  Future<int> countPaintingsByMuseum(String museumId) async {
-    Database db = await database;
-    return Sqflite.firstIntValue(await db.rawQuery('''
-      SELECT COUNT(*) 
-      FROM ${Painting.tableName}
-      WHERE ${Painting.columnMuseum} = ?
-      ''', [museumId]));
-  }
-
-  Future<int> removeAllRecords() async {
-    Database db = await database;
-    return db.delete(Painting.tableName);
-  }
-
-  Future<int> deletePaintingsByMuseum(String museumId) async {
-    Database db = await database;
-    return db.delete(Painting.tableName,
-        where: '${Painting.columnMuseum} = ?', whereArgs: [museumId]);
   }
 
   Future<void> insertPaintingsDataMap(
@@ -172,6 +202,8 @@ class DatabaseHelper {
       WHERE ${Painting.tableName}.${Painting.columnMuseum} = ?
       ''', [museumId]));
   }
+
+  // MUSEUM
 
   Future<void> insertMuseums(List<Museum> museums) async {
     Database db = await database;

@@ -88,7 +88,7 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                           //           FileImage(File(widget.painting.imagePath))),
                           // )
                           child: Hero(
-                              tag: "painting",
+                              tag: widget.painting.id,
                               child:
                                   Image.file(File(widget.painting.imagePath))),
                         )),

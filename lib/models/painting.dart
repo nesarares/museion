@@ -10,6 +10,7 @@ class Painting {
   static final String columnCopyright = "copyright";
   static final String columnMedium = "medium";
   static final String columnDimensions = "dimensions";
+  static final String columnLastViewed = "lastViewed";
 
   String id;
   String artist;
@@ -21,6 +22,7 @@ class Painting {
   String copyright;
   String medium;
   String dimensions;
+  DateTime lastViewed;
 
   Painting();
 
@@ -36,6 +38,10 @@ class Painting {
     copyright = map[columnCopyright];
     medium = map[columnMedium];
     dimensions = map[columnDimensions];
+    lastViewed = map[lastViewed];
+    if (lastViewed != null)
+      lastViewed =
+          DateTime.fromMillisecondsSinceEpoch(map[lastViewed], isUtc: true);
   }
 
   // convenience method to create a Map from this Word object
@@ -53,6 +59,8 @@ class Painting {
     if (copyright != null) map[columnCopyright] = copyright;
     if (medium != null) map[columnMedium] = medium;
     if (dimensions != null) map[columnDimensions] = dimensions;
+    if (lastViewed != null)
+      map[columnLastViewed] = lastViewed.millisecondsSinceEpoch;
 
     return map;
   }

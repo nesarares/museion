@@ -15,7 +15,7 @@ dependencies:
   
   after_layout: ^1.0.7
   archive: ^2.0.8
-  bottom_navy_bar: ^3.0.0
+  bottom_navy_bar: ^4.2.0
   cached_network_image: ^0.7.0
   camera: ^0.5.2+1
   cloud_firestore: ^0.9.10
