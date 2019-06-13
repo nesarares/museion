@@ -117,7 +117,7 @@ class _TabsPageState extends State<TabsPage> {
                   labelText: "Camera",
                   currentButton: FloatingActionButton(
                     heroTag: "camera",
-                    backgroundColor: Colors.blueAccent,
+                    backgroundColor: Colors.redAccent,
                     mini: true,
                     child: Icon(FeatherIcons.camera),
                     onPressed: openCamera,
@@ -127,7 +127,7 @@ class _TabsPageState extends State<TabsPage> {
                   labelText: "Gallery",
                   currentButton: FloatingActionButton(
                     heroTag: "gallery",
-                    backgroundColor: Colors.blueAccent,
+                    backgroundColor: Colors.redAccent,
                     mini: true,
                     child: Icon(FeatherIcons.image),
                     onPressed: openGallery,
@@ -142,7 +142,10 @@ class _TabsPageState extends State<TabsPage> {
                     parentButton: Icon(
                       FeatherIcons.camera,
                       size: 30,
+                      color: Colors.black,
                     ),
+                    backgroundColor: Colors.white70,
+                    hasBackground: true,
                     onMainButtonPressed: snap.hasData && snap.data
                         ? () {}
                         : () => openErrorNoData(ctx),

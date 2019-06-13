@@ -138,7 +138,7 @@ class _MuseumCardState extends State<MuseumCard> {
       downloadTaskId = await FlutterDownloader.enqueue(
           url: downloadUrl,
           savedDir: savePath,
-          showNotification: true,
+          showNotification: false,
           openFileFromNotification: false,
           fileName: archiveName);
     } catch (err) {
@@ -185,12 +185,12 @@ class _MuseumCardState extends State<MuseumCard> {
     var paintings = await dbLocal.getPaintingsWithColumnsByMuseum(
         [Painting.columnId, Painting.columnImagePath], widget.museumId);
 
-    paintings = (await platform.invokeMethod<List<dynamic>>(
+    var paintingsData = (await platform.invokeMethod<List<dynamic>>(
             "generateImageData", {"paintings": paintings}))
         .map((p) => Map<String, String>.from(p))
         .toList();
 
-    await dbLocal.insertPaintingsDataMap(paintings);
+    await dbLocal.insertPaintingsDataMap(paintingsData);
     if (widget.museumId == museumService.museumId) {
       await loadingService.loadMuseumData();
     }

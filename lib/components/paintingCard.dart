@@ -20,7 +20,7 @@ class PaintingCard extends StatelessWidget {
       this.painting,
       this.beforeNavigate,
       this.afterNavigate,
-      this.showMuseumName})
+      this.showMuseumName = false})
       : super(key: key);
 
   Future<void> onTapCard(BuildContext context) async {
@@ -68,7 +68,7 @@ class PaintingCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Hero(
-                        tag: "${painting?.id}",
+                        tag: "${painting?.id ?? 'painting'}",
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.3,
                           decoration: BoxDecoration(

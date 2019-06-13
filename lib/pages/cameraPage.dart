@@ -62,8 +62,8 @@ class _CameraPageState extends State<CameraPage> {
     print('${currentImage.width} x ${currentImage.height}');
     if (!mounted) return;
     String id = await detectionService.recognizePaintingStream(currentImage);
-    if (detectedId != id) {
-      Painting p = id == null ? null : await loadingService.loadPainting(id);
+    if (id != null && detectedId != id) {
+      Painting p = await loadingService.loadPainting(id);
       if (!mounted) return;
       setState(() {
         detectedId = id;

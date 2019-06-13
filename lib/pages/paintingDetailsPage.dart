@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/models/painting.dart';
+import 'package:open_museum_guide/services/textToSpeechService.dart';
 import 'package:open_museum_guide/utils/roundIconButton.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -16,6 +18,8 @@ class PaintingDetailsPage extends StatefulWidget {
 }
 
 class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
+  TextToSpeechService ttsService = TextToSpeechService.instance;
+
   static const double fontSizeTitle = 14;
   static const double fontSizeText = 18;
   static const Color fontColor = Colors.black;
@@ -61,6 +65,22 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: StreamBuilder<TtsState>(
+          stream: ttsService.ttsState$,
+          builder: (ctx, snap) {
+            return snap.data == TtsState.stopped
+                ? FloatingActionButton(
+                    onPressed: () {
+                      ttsService.speak(widget.painting.text);
+                    },
+                    child: Icon(Icons.music_note),
+                  )
+                : FloatingActionButton(
+                    onPressed: ttsService.stop,
+                    child: Icon(Icons.stop),
+                  );
+          }),
       body: Stack(
         children: <Widget>[
           SlidingUpPanel(
@@ -119,10 +139,12 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                         ),
                         Text(
                           widget.painting?.title,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: fontColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20),
+                            color: fontColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         )
                       ],
                     ),

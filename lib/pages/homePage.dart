@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
     await loadingService.loadMuseumData();
     await loadingService.loadModel();
     await loadingService.loadCameras();
+    await loadingService.loadTTS();
     setState(() {
       isLoading = false;
     });

@@ -5,6 +5,7 @@ import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/services/paintingService.dart';
+import 'package:open_museum_guide/services/textToSpeechService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tflite/tflite.dart';
@@ -13,6 +14,8 @@ class LoadingService {
   LoadingService._privateConstructor();
   static final LoadingService instance = LoadingService._privateConstructor();
 
+  static final TextToSpeechService textToSpeechService =
+      TextToSpeechService.instance;
   static final PaintingService paintingService = PaintingService.instance;
   static final MuseumService museumService = MuseumService.instance;
   static final CameraService cameraService = CameraService.instance;
@@ -52,6 +55,10 @@ class LoadingService {
 
   Future<void> loadCameras() async {
     await cameraService.loadCameras();
+  }
+
+  Future<void> loadTTS() async {
+    await textToSpeechService.loadTTS();
   }
 
   Future<Painting> loadPainting(String id) async {

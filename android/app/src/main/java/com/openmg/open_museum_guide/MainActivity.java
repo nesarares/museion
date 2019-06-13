@@ -75,7 +75,7 @@ public class MainActivity extends FlutterActivity {
   }
 
   private static void print(String str) {
-    Log.d("ANDROIDUS", str);
+    Log.d("ANDROID", str);
   }
 
   @Override
