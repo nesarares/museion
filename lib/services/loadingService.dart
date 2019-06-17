@@ -1,12 +1,10 @@
 import 'package:flutter/services.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
-import 'package:open_museum_guide/models/painting.dart';
+import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/services/paintingService.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tflite/tflite.dart';
 
@@ -61,10 +59,7 @@ class LoadingService {
     await textToSpeechService.loadTTS();
   }
 
-  Future<Painting> loadPainting(String id) async {
-    Painting p = await dbLocal.getPaintingById(id);
-    String savedDirPath = (await getApplicationDocumentsDirectory()).path;
-    p.imagePath = "$savedDirPath/${p.imagePath}";
-    return p;
+  Future<void> loadMuseums() async {
+    await museumService.loadMuseums();
   }
 }

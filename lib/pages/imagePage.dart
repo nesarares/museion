@@ -3,12 +3,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/components/roundIconButton.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
-import 'package:open_museum_guide/services/loadingService.dart';
-import 'package:open_museum_guide/utils/roundIconButton.dart';
 import 'package:after_layout/after_layout.dart';
+import 'package:open_museum_guide/services/paintingService.dart';
 
 class ImagePage extends StatefulWidget {
   final File image;
@@ -21,9 +20,8 @@ class ImagePage extends StatefulWidget {
 
 class _ImagePageState extends State<ImagePage>
     with AfterLayoutMixin<ImagePage> {
-  static final LoadingService loadingService = LoadingService.instance;
+  static final PaintingService paintingService = PaintingService.instance;
   static final DetectionService detectionService = DetectionService.instance;
-  static final DatabaseHelper dbLocal = DatabaseHelper.instance;
 
   Painting painting;
 
@@ -41,11 +39,15 @@ class _ImagePageState extends State<ImagePage>
 
   Future<void> runDetection() async {
     String id = await detectionService.recognizePaintingFile(widget.image);
-    loadPainting(id);
+    if (id != null) {
+      loadPainting(id);
+    } else {
+      print('No detection');
+    }
   }
 
   Future<void> loadPainting(String id) async {
-    Painting p = await loadingService.loadPainting(id);
+    Painting p = await paintingService.loadPainting(id);
     setState(() {
       painting = p;
     });

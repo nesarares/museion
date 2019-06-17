@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
+import 'package:open_museum_guide/components/customDivider.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
-import 'package:open_museum_guide/utils/customDivider.dart';
 
 class HomeTab extends StatefulWidget {
   final Widget child;

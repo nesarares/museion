@@ -68,7 +68,6 @@ class MuseumInfoTab extends StatelessWidget {
             alignment: WrapAlignment.center,
             spacing: 20,
             children: list.map((facility) {
-              print(facility);
               var icon;
               switch (facility) {
                 case 'wifi':

@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
-import 'package:open_museum_guide/components/fabMenu.dart';
 import 'package:open_museum_guide/pages/cameraPage.dart';
 import 'package:open_museum_guide/pages/imagePage.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/tabs/historyTab.dart';
 import 'package:open_museum_guide/tabs/homeTab.dart';
 import 'package:open_museum_guide/tabs/museumInfoTab.dart';
-import 'package:open_museum_guide/tabs/settingsTab.dart';
+import 'package:open_museum_guide/tabs/downloadsTab.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 import 'dart:math' as math;
 
@@ -104,7 +103,7 @@ class _TabsPageState extends State<TabsPage> {
             HomeTab(onErrorTap: () => this.openErrorNoData(context)),
             MuseumInfoTab(),
             HistoryTab(),
-            SettingsTab()
+            DownloadsTab()
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -132,26 +131,23 @@ class _TabsPageState extends State<TabsPage> {
                     child: Icon(FeatherIcons.image),
                     onPressed: openGallery,
                   )));
-              return Container(
-                margin: EdgeInsets.only(bottom: 10),
-                child: UnicornDialer(
-                    parentButtonBackground: snap.hasData && snap.data
-                        ? colors['primary']
-                        : colors['disabledGray'],
-                    orientation: UnicornOrientation.VERTICAL,
-                    parentButton: Icon(
-                      FeatherIcons.camera,
-                      size: 30,
-                      color: Colors.black,
-                    ),
-                    backgroundColor: Colors.white70,
-                    hasBackground: true,
-                    onMainButtonPressed: snap.hasData && snap.data
-                        ? () {}
-                        : () => openErrorNoData(ctx),
-                    childButtons:
-                        snap.hasData && snap.data ? childButtons : []),
-              );
+              return UnicornDialer(
+                  parentButtonBackground: snap.hasData && snap.data
+                      ? colors['primary']
+                      : colors['disabledGray'],
+                  orientation: UnicornOrientation.VERTICAL,
+                  parentButton: Icon(
+                    FeatherIcons.camera,
+                    size: 30,
+                    color: Colors.black,
+                  ),
+                  backgroundColor: Colors.white70,
+                  hasBackground: true,
+                  animationDuration: 120,
+                  onMainButtonPressed: snap.hasData && snap.data
+                      ? () {}
+                      : () => openErrorNoData(ctx),
+                  childButtons: snap.hasData && snap.data ? childButtons : []);
             }),
         bottomNavigationBar: StreamBuilder(
             stream: indexcontroller.stream,

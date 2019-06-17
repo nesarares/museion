@@ -39,7 +39,7 @@ import io.flutter.util.PathUtils;
 
 public class MainActivity extends FlutterActivity {
   private static final String CHANNEL = "com.openmg.open_museum_guide/opencv";
-  private static final int THRESHOLD_KEYPOINTS = 10;
+  private static final int THRESHOLD_KEYPOINTS = 7;
   private static PHash pHashClass;
   private static ORB orb;
   private static DescriptorMatcher matcher;
@@ -299,7 +299,7 @@ public class MainActivity extends FlutterActivity {
 
       print("======== Top 5 results ========");
       print(matchedKeypoints.subList(0, 5).toString());
-      if (matchedKeypoints.get(0).second > THRESHOLD_KEYPOINTS)
+      if (matchedKeypoints.get(0).second >= THRESHOLD_KEYPOINTS)
         return matchedKeypoints.get(0).first;
       return null;
     }

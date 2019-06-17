@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:tflite/tflite.dart';
 import 'package:image/image.dart' as img;
 

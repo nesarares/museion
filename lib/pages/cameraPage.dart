@@ -1,11 +1,11 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
+import 'package:open_museum_guide/components/roundIconButton.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
-import 'package:open_museum_guide/services/loadingService.dart';
-import 'package:open_museum_guide/utils/roundIconButton.dart';
+import 'package:open_museum_guide/services/paintingService.dart';
 
 class CameraPage extends StatefulWidget {
   @override
@@ -13,7 +13,7 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> {
-  static final LoadingService loadingService = LoadingService.instance;
+  static final PaintingService paintingService = PaintingService.instance;
   static final CameraService cameraService = CameraService.instance;
   static final DetectionService detectionService = DetectionService.instance;
   CameraController controller;
@@ -63,7 +63,7 @@ class _CameraPageState extends State<CameraPage> {
     if (!mounted) return;
     String id = await detectionService.recognizePaintingStream(currentImage);
     if (id != null && detectedId != id) {
-      Painting p = await loadingService.loadPainting(id);
+      Painting p = await paintingService.loadPainting(id);
       if (!mounted) return;
       setState(() {
         detectedId = id;

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:open_museum_guide/components/header.dart';
+import 'package:open_museum_guide/components/textHeader.dart';
 import 'package:open_museum_guide/components/museumCard.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 
-class SettingsTab extends StatefulWidget {
-  SettingsTab() : super();
+class DownloadsTab extends StatefulWidget {
+  DownloadsTab() : super();
 
-  _SettingsTabState createState() => _SettingsTabState();
+  _DownloadsTabState createState() => _DownloadsTabState();
 }
 
-class _SettingsTabState extends State<SettingsTab> {
+class _DownloadsTabState extends State<DownloadsTab> {
   static const double _columnCardsGap = 10.0;
   static final MuseumService museumService = MuseumService.instance;
 

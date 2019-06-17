@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:open_museum_guide/components/header.dart';
-import 'package:open_museum_guide/components/museumCard.dart';
+import 'package:open_museum_guide/components/textHeader.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:open_museum_guide/models/museum.dart';
+import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/painting.dart';
-import 'package:open_museum_guide/services/museumService.dart';
-import 'package:open_museum_guide/utils/constants.dart';
 import 'package:path_provider/path_provider.dart';
 
 class HistoryTab extends StatefulWidget {

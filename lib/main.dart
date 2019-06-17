@@ -1,8 +1,5 @@
-// import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
 import 'package:open_museum_guide/pages/homePage.dart';
 
 void main() {
@@ -17,7 +14,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Museion',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.deepOrange, fontFamily: 'Lato'),
       home: HomePage(),
     );

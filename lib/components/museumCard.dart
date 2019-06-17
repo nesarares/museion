@@ -14,7 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 

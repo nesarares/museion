@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:open_museum_guide/database/databaseHelpers.dart';
+import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -14,10 +14,7 @@ class MuseumService {
 
   BehaviorSubject<List<Museum>> _museumsSubject =
       BehaviorSubject.seeded(List());
-  Observable<List<Museum>> get museums$ {
-    loadMuseums();
-    return _museumsSubject.stream;
-  }
+  Observable<List<Museum>> get museums$ => _museumsSubject.stream;
 
   List<Museum> get museums => _museumsSubject.value;
 

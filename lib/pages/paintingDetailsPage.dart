@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/components/roundIconButton.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
-import 'package:open_museum_guide/utils/roundIconButton.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class PaintingDetailsPage extends StatefulWidget {
@@ -28,7 +27,8 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
     topRight: Radius.circular(16.0),
   );
 
-  void goBack() {
+  void goBack() async {
+    await ttsService.stop();
     Navigator.pop(context);
   }
 
