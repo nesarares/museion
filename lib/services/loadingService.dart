@@ -28,7 +28,21 @@ class LoadingService {
   Observable<bool> get isDataLoaded$ => _dataLoadedSubject.stream;
   bool get isDataLoaded => _dataLoadedSubject.value;
 
+  Future<void> loadData() async {
+    await loadModel();
+    await cameraService.loadCameras();
+    await textToSpeechService.loadTTS();
+
+    await museumService.loadMuseums();
+    await museumService.loadActiveMuseum();
+    await loadMuseumData();
+  }
+
   Future<void> loadMuseumData() async {
+    if (museumService.museumId == null) {
+      _dataLoadedSubject.add(false);
+      return;
+    }
     List data = await dbLocal.getPaintingsDataByMuseum(museumService.museumId);
     if (data.length == 0) {
       _dataLoadedSubject.add(false);
@@ -49,17 +63,5 @@ class LoadingService {
     return Tflite.loadModel(
         model: "assets/graph/paintings.tflite",
         labels: "assets/graph/paintings.txt");
-  }
-
-  Future<void> loadCameras() async {
-    await cameraService.loadCameras();
-  }
-
-  Future<void> loadTTS() async {
-    await textToSpeechService.loadTTS();
-  }
-
-  Future<void> loadMuseums() async {
-    await museumService.loadMuseums();
   }
 }

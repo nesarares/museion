@@ -19,11 +19,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadData() async {
-    await loadingService.loadMuseums();
-    await loadingService.loadMuseumData();
-    await loadingService.loadModel();
-    await loadingService.loadCameras();
-    await loadingService.loadTTS();
+    await loadingService.loadData();
     setState(() {
       isLoading = false;
     });

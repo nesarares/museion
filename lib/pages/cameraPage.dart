@@ -26,7 +26,7 @@ class _CameraPageState extends State<CameraPage> {
   void initState() {
     super.initState();
     controller =
-        CameraController(cameraService.cameras[0], ResolutionPreset.medium);
+        CameraController(cameraService.cameras[0], ResolutionPreset.high);
     initCamera();
   }
 

@@ -19,15 +19,17 @@ class MuseumService {
   List<Museum> get museums => _museumsSubject.value;
 
   BehaviorSubject<Museum> _activeMuseumSubject = BehaviorSubject.seeded(null);
-  Observable<Museum> get activeMuseum$ {
-    loadActiveMuseum();
-    return _activeMuseumSubject.stream;
-  }
+  Observable<Museum> get activeMuseum$ => _activeMuseumSubject.stream;
 
-  String get museumId => "GWNdYOmSpgjkLxnLSroV"; // orsay
-  // String get museumId => "4bGQk6lrv9cyu0y7l4FZ"; // test
+  String _museumId = "GWNdYOmSpgjkLxnLSroV"; // orsay
 
   Museum get activeMuseum => _activeMuseumSubject.value;
+  String get museumId => _museumId;
+
+  set museumId(String newId) {
+    _museumId = newId;
+    loadActiveMuseum();
+  }
 
   Future<void> loadMuseums() async {
     if (museums != null && museums.length > 0) return;
@@ -40,7 +42,6 @@ class MuseumService {
   }
 
   Future<void> loadActiveMuseum() async {
-    if (activeMuseum != null) return;
     Museum museum = await dbLocal.getMuseumById(museumId);
     if (museum != null) {
       _activeMuseumSubject.add(museum);

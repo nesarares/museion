@@ -12,6 +12,7 @@ class DetectionService {
   static final DetectionService instance =
       DetectionService._privateConstructor();
 
+  Stopwatch stopwatch = new Stopwatch();
   static const int DETECT_MAX_SIZE = 720;
   static final DatabaseHelper dbLocal = DatabaseHelper.instance;
   static const platform =
@@ -78,11 +79,15 @@ class DetectionService {
 
   Future<String> recognizePaintingFile(File image) async {
     // Detect painting in picture
-    List<dynamic> detections = await _detectObjectFile(image);
-    if (detections.length == 0) return null; // no painting detected
-
-    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.reset();
     stopwatch.start();
+
+    List<dynamic> detections = await _detectObjectFile(image);
+    if (detections.length == 0) {
+      stopwatch.stop();
+      return null; // no painting detected
+    }
+
     Map<dynamic, dynamic> detection = detections[0];
 
     img.Image imageObj = await _imageFromFile(image);
@@ -116,6 +121,9 @@ class DetectionService {
 
   Future<String> recognizePaintingStream(CameraImage image) async {
     // Detect painting in picture
+    stopwatch.reset();
+    stopwatch.start();
+
     var bytesList = image.planes.map((plane) {
       return plane.bytes;
     }).toList();
@@ -124,12 +132,10 @@ class DetectionService {
         await _detectObjectFrame(bytesList, image.width, image.height);
     if (detections.length == 0) {
       print("No paintings detected");
+      stopwatch.stop();
       return null; // no painting detected
     }
     print(detections);
-
-    Stopwatch stopwatch = new Stopwatch();
-    stopwatch.start();
 
     Map<dynamic, dynamic> detection = detections[0];
     int x = ((detection["rect"]["x"] as double) * image.width).round();
