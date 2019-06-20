@@ -62,7 +62,6 @@ class PaintingCard extends StatelessWidget {
               ),
               elevation: 5,
               child: Container(
-                // height: 150,
                 child: IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,

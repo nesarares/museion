@@ -191,7 +191,7 @@ class _MuseumCardState extends State<MuseumCard> {
         .toList();
 
     await dbLocal.insertPaintingsDataMap(paintingsData);
-    if (widget.museumId == museumService.museumId) {
+    if (widget.museumId == museumService.activeMuseum?.id ?? null) {
       await loadingService.loadMuseumData();
     }
     await checkDownloaded();

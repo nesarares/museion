@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
+import 'package:open_museum_guide/services/locationService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/services/paintingService.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
@@ -18,6 +19,7 @@ class LoadingService {
   static final MuseumService museumService = MuseumService.instance;
   static final CameraService cameraService = CameraService.instance;
   static final DetectionService detectionService = DetectionService.instance;
+  static final LocationService locationService = LocationService.instance;
   final DatabaseHelper dbLocal = DatabaseHelper.instance;
 
   static const platform =
@@ -34,16 +36,18 @@ class LoadingService {
     await textToSpeechService.loadTTS();
 
     await museumService.loadMuseums();
-    await museumService.loadActiveMuseum();
-    await loadMuseumData();
+    // String currentMuseumId = "GWNdYOmSpgjkLxnLSroV";
+    String currentMuseumId = await locationService.getCurrentLocation();
+    await museumService.changeActiveMuseum(currentMuseumId);
   }
 
   Future<void> loadMuseumData() async {
-    if (museumService.museumId == null) {
+    if (museumService.activeMuseum == null) {
       _dataLoadedSubject.add(false);
       return;
     }
-    List data = await dbLocal.getPaintingsDataByMuseum(museumService.museumId);
+    List data =
+        await dbLocal.getPaintingsDataByMuseum(museumService.activeMuseum.id);
     if (data.length == 0) {
       _dataLoadedSubject.add(false);
     } else {

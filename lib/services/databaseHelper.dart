@@ -215,13 +215,14 @@ class DatabaseHelper {
     await batch.commit(noResult: true);
   }
 
-  Future<List<Museum>> getMuseumsSummary() async {
+  Future<List<Museum>> getMuseums() async {
     Database db = await database;
     var maps = await db.rawQuery('''
-      SELECT ${Museum.columnId}, ${Museum.columnTitle}, ${Museum.columnImageUrl}
+      SELECT ${Museum.columnId}, ${Museum.columnTitle}, ${Museum.columnImageUrl}, ${Museum.columnCity}, ${Museum.columnCountry}, ${Museum.columnCoordinates}
       FROM ${Museum.tableName}
+      ORDER BY ${Museum.columnCountry} ASC, ${Museum.columnCity} ASC, ${Museum.columnTitle} ASC
     ''');
-    return maps.map((m) => Museum.fromMap(m)).toList();
+    return maps.map((m) => Museum.fromMap(m, coordinatesString: true)).toList();
   }
 
   Future<Museum> getMuseumById(String id) async {

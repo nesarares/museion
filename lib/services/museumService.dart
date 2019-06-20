@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/museum.dart';
+import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MuseumService {
@@ -11,6 +12,7 @@ class MuseumService {
   final DatabaseHelper dbLocal = DatabaseHelper.instance;
   final Firestore db = Firestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
+  static final LoadingService loadingService = LoadingService.instance;
 
   BehaviorSubject<List<Museum>> _museumsSubject =
       BehaviorSubject.seeded(List());
@@ -20,20 +22,11 @@ class MuseumService {
 
   BehaviorSubject<Museum> _activeMuseumSubject = BehaviorSubject.seeded(null);
   Observable<Museum> get activeMuseum$ => _activeMuseumSubject.stream;
-
-  String _museumId = "GWNdYOmSpgjkLxnLSroV"; // orsay
-
   Museum get activeMuseum => _activeMuseumSubject.value;
-  String get museumId => _museumId;
-
-  set museumId(String newId) {
-    _museumId = newId;
-    loadActiveMuseum();
-  }
 
   Future<void> loadMuseums() async {
     if (museums != null && museums.length > 0) return;
-    List<Museum> data = await dbLocal.getMuseumsSummary();
+    List<Museum> data = await dbLocal.getMuseums();
     if (data.length == 0) {
       await downloadMuseums();
     } else {
@@ -41,11 +34,13 @@ class MuseumService {
     }
   }
 
-  Future<void> loadActiveMuseum() async {
-    Museum museum = await dbLocal.getMuseumById(museumId);
+  Future<void> changeActiveMuseum(String id) async {
+    if (id == null) return;
+    Museum museum = await dbLocal.getMuseumById(id);
     if (museum != null) {
       _activeMuseumSubject.add(museum);
     }
+    loadingService.loadMuseumData();
   }
 
   Future<void> downloadMuseums() async {

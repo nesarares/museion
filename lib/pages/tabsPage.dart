@@ -9,6 +9,7 @@ import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:open_museum_guide/pages/cameraPage.dart';
 import 'package:open_museum_guide/pages/imagePage.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
+import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/tabs/historyTab.dart';
 import 'package:open_museum_guide/tabs/homeTab.dart';
 import 'package:open_museum_guide/tabs/museumInfoTab.dart';
@@ -26,6 +27,7 @@ class TabsPage extends StatefulWidget {
 
 class _TabsPageState extends State<TabsPage> {
   LoadingService loadingService = LoadingService.instance;
+  MuseumService museumService = MuseumService.instance;
   StreamController<int> indexcontroller = StreamController<int>.broadcast();
   int selectedPage = 0;
   final controller = PageController(initialPage: 0);
@@ -55,10 +57,13 @@ class _TabsPageState extends State<TabsPage> {
   }
 
   void openErrorNoData(BuildContext context) {
+    var message = museumService.activeMuseum != null
+        ? 'Please download the data for "${museumService.activeMuseum.title}" from the "Downloads" tab'
+        : 'Please select your current location from the "Home" tab';
     Flushbar(
       flushbarPosition: FlushbarPosition.TOP,
       messageText: Text(
-        'Please download the data for <museum_name> from the "Downloads" tab',
+        message,
         style: TextStyle(
             fontWeight: FontWeight.w700, color: Colors.white, fontSize: 15),
       ),
@@ -143,7 +148,7 @@ class _TabsPageState extends State<TabsPage> {
                   parentButton: Icon(
                     FeatherIcons.camera,
                     size: 30,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                   backgroundColor: Colors.white70,
                   hasBackground: true,

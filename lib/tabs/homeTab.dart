@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:open_museum_guide/components/customDivider.dart';
 import 'package:open_museum_guide/models/museum.dart';
+import 'package:open_museum_guide/pages/changeMuseumPage.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
@@ -20,7 +21,8 @@ class _HomeTabState extends State<HomeTab> {
   static final MuseumService museumService = MuseumService.instance;
 
   void _changeLocation() {
-    print('Change location clicked');
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => ChangeMuseumPage()));
   }
 
   @override
@@ -28,10 +30,12 @@ class _HomeTabState extends State<HomeTab> {
     return StreamBuilder<Object>(
         stream: museumService.activeMuseum$,
         builder: (ctxMuseum, snapMuseum) {
-          return !snapMuseum.hasData
+          return snapMuseum.connectionState != ConnectionState.active
               ? Container()
               : snapMuseum.data == null
-                  ? Text("Could not find your location")
+                  ? Center(
+                      child: Text("Could not find your location"),
+                    )
                   : Stack(
                       children: <Widget>[
                         StreamBuilder<Object>(
