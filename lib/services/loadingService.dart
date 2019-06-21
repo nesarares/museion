@@ -37,8 +37,7 @@ class LoadingService {
 
     await museumService.loadMuseums();
     // String currentMuseumId = "GWNdYOmSpgjkLxnLSroV";
-    String currentMuseumId = await locationService.getCurrentLocation();
-    await museumService.changeActiveMuseum(currentMuseumId);
+    await locationService.detectAndChangeActiveMuseum();
   }
 
   Future<void> loadMuseumData() async {

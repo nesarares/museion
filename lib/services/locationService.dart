@@ -33,9 +33,14 @@ class LocationService {
         minDist = dist;
         id = museum.id;
       }
-      print('${museum.title}: $dist');
+      // print('${museum.title}: $dist');
     });
 
     return id;
+  }
+
+  Future<void> detectAndChangeActiveMuseum() async {
+    String currentMuseumId = await getCurrentLocation();
+    await museumService.changeActiveMuseum(currentMuseumId);
   }
 }
