@@ -8,6 +8,7 @@ class Painting {
   static final String columnText = "text";
   static final String columnYear = "year";
   static final String columnCopyright = "copyright";
+  static final String columnWiki = "wiki";
   static final String columnMedium = "medium";
   static final String columnDimensions = "dimensions";
   static final String columnLastViewed = "lastViewed";
@@ -21,6 +22,7 @@ class Painting {
   String year;
   String copyright;
   String medium;
+  String wiki;
   String dimensions;
   DateTime lastViewed;
 
@@ -36,6 +38,7 @@ class Painting {
     text = map[columnText];
     year = map[columnYear];
     copyright = map[columnCopyright];
+    wiki = map[columnWiki];
     medium = map[columnMedium];
     dimensions = map[columnDimensions];
     lastViewed = map[lastViewed];
@@ -57,6 +60,7 @@ class Painting {
     if (text != null) map[columnText] = text;
     if (year != null) map[columnYear] = year;
     if (copyright != null) map[columnCopyright] = copyright;
+    if (wiki != null) map[columnWiki] = wiki;
     if (medium != null) map[columnMedium] = medium;
     if (dimensions != null) map[columnDimensions] = dimensions;
     if (lastViewed != null)

@@ -1,223 +1,54 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:archive/archive.dart';
-import 'package:archive/archive_io.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:open_museum_guide/services/loadingService.dart';
+import 'package:open_museum_guide/main.dart';
+import 'package:open_museum_guide/services/downloadService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
-import 'package:open_museum_guide/services/databaseHelper.dart';
-import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/utils/constants.dart';
+import 'package:open_museum_guide/utils/guiUtils.dart';
 
 class MuseumCard extends StatefulWidget {
   final String imageUrl;
   final String title;
   final String museumId;
+  final DownloadState downloadState;
 
-  MuseumCard({Key key, this.imageUrl, this.title, this.museumId})
+  MuseumCard(
+      {Key key, this.imageUrl, this.title, this.museumId, this.downloadState})
       : super(key: key);
 
   _MuseumCardState createState() => _MuseumCardState();
 }
 
-enum DownloadState { DOWNLOADING, DOWNLOADED, NOT_DOWNLOADED, DELETING }
-
 class _MuseumCardState extends State<MuseumCard> {
-  static final LoadingService loadingService = LoadingService.instance;
-  static final MuseumService museumService = MuseumService.instance;
+  final DownloadService downloadService = getIt.get<DownloadService>();
+  final MuseumService museumService = getIt.get<MuseumService>();
 
   static final double columnTextGap = 6.0;
 
-  static const platform =
-      const MethodChannel('com.openmg.open_museum_guide/opencv');
-
-  final Firestore db = Firestore.instance;
-  final FirebaseStorage storage = FirebaseStorage.instance;
-  final DatabaseHelper dbLocal = DatabaseHelper.instance;
-  DocumentReference museumDoc;
-
-  DownloadState downloadState = DownloadState.NOT_DOWNLOADED;
-  int downloadStep = 1;
   int recordsCount = 0;
-
-  String downloadTaskId = '';
 
   @override
   void initState() {
     super.initState();
-    museumDoc = db.collection('museums').document(widget.museumId);
-
-    checkDownloaded();
-  }
-
-  @override
-  void dispose() {
-    FlutterDownloader.registerCallback(null);
-    super.dispose();
-  }
-
-  Future<void> checkDownloaded() async {
-    // Check for downloaded paintings data
-    final int paintingsCount =
-        await dbLocal.countPaintingsByMuseum(widget.museumId);
-    final int paintingsDataCount =
-        await dbLocal.countPaintingsDataByMuseum(widget.museumId);
-
-    if (paintingsCount > 0 && paintingsCount == paintingsDataCount) {
-      setState(() {
-        downloadState = DownloadState.DOWNLOADED;
-        recordsCount = paintingsCount;
-      });
-    } else {
-      setState(() {
-        downloadState = DownloadState.NOT_DOWNLOADED;
-        recordsCount = paintingsCount;
-      });
-    }
-  }
-
-  Future<void> downloadDetails() async {
-    setState(() {
-      downloadState = DownloadState.DOWNLOADING;
-      downloadStep = 1;
-    });
-
-    try {
-      QuerySnapshot docs =
-          await museumDoc.collection('paintings').getDocuments();
-      List<Map<String, dynamic>> paintings = docs.documents.map((doc) {
-        var map = doc.data;
-        map[Painting.columnMuseum] = widget.museumId;
-        return map;
-      }).toList();
-
-      await dbLocal.insertPaintingsMap(paintings);
-      await checkDownloaded();
-    } catch (ex) {
-      print("Download details failed");
-      print(ex);
-    }
-  }
-
-  Future<void> downloadImages() async {
-    setState(() {
-      downloadState = DownloadState.DOWNLOADING;
-      downloadStep = 2;
-    });
-
-    try {
-      String downloadUrl =
-          await storage.ref().child('${widget.museumId}.zip').getDownloadURL();
-
-      String savedDirPath = (await getApplicationDocumentsDirectory()).path;
-      String savePath = '$savedDirPath/${widget.museumId}';
-      String archiveName = '${widget.museumId}.zip';
-      Directory saveDir = Directory(savePath);
-      if (saveDir.existsSync()) saveDir.deleteSync(recursive: true);
-      saveDir.createSync();
-
-      FlutterDownloader.registerCallback((id, status, progress) async {
-        if (id != downloadTaskId || status != DownloadTaskStatus.complete)
-          return;
-
-        extractArchive(savePath, archiveName);
-        await generateData();
-
-        FlutterDownloader.registerCallback(null);
-      });
-
-      downloadTaskId = await FlutterDownloader.enqueue(
-          url: downloadUrl,
-          savedDir: savePath,
-          showNotification: false,
-          openFileFromNotification: false,
-          fileName: archiveName);
-    } catch (err) {
-      print("Could not download images for museum ${widget.museumId}");
-      print(err);
-    }
-  }
-
-  void extractArchive(String savePath, String archiveName) {
-    // Read the Zip file from disk.
-    File archiveFile = new File('$savePath/$archiveName');
-    List<int> bytes = archiveFile.readAsBytesSync();
-
-    // Decode the Zip file
-    Archive archive = new ZipDecoder().decodeBytes(bytes);
-
-    // Extract the contents of the Zip archive to disk.
-    for (ArchiveFile file in archive) {
-      String filename = file.name;
-      if (file.isFile) {
-        List<int> data = file.content;
-        try {
-          new File('$savePath/$filename')
-            ..createSync(recursive: true)
-            ..writeAsBytesSync(data);
-        } catch (ex) {
-          print("cannot write file");
-          print(ex);
-        }
-      } else {
-        new Directory(filename)..create(recursive: true);
-      }
-    }
-
-    archiveFile.deleteSync();
-  }
-
-  Future<void> generateData() async {
-    setState(() {
-      downloadState = DownloadState.DOWNLOADING;
-      downloadStep = 3;
-    });
-
-    var paintings = await dbLocal.getPaintingsWithColumnsByMuseum(
-        [Painting.columnId, Painting.columnImagePath], widget.museumId);
-
-    var paintingsData = (await platform.invokeMethod<List<dynamic>>(
-            "generateImageData", {"paintings": paintings}))
-        .map((p) => Map<String, String>.from(p))
-        .toList();
-
-    await dbLocal.insertPaintingsDataMap(paintingsData);
-    if (widget.museumId == museumService.activeMuseum?.id ?? null) {
-      await loadingService.loadMuseumData();
-    }
-    await checkDownloaded();
   }
 
   onDownload() async {
-    await downloadDetails();
-    await downloadImages();
-    // await generateData();
+    try {
+      await downloadService.downloadData(widget.museumId);
+    } on DownloadException catch (e) {
+      GuiUtils.showWarningNotification(context, message: e.message);
+    }
   }
 
   onDeleteData() async {
-    setState(() {
-      downloadState = DownloadState.DELETING;
-    });
-
-    String savedDirPath = (await getApplicationDocumentsDirectory()).path;
-    String savePath = '$savedDirPath/${widget.museumId}';
-    Directory saveDir = Directory(savePath);
-    if (saveDir.existsSync()) saveDir.deleteSync(recursive: true);
-    await dbLocal.deletePaintingsByMuseum(widget.museumId);
-
-    Future.delayed(const Duration(milliseconds: 450), () async {
-      await loadingService.unloadMuseumData(widget.museumId);
-      checkDownloaded();
-    });
+    try {
+      await this.downloadService.deleteData(widget.museumId);
+    } on DownloadException catch (e) {
+      GuiUtils.showWarningNotification(context, message: e.message);
+    }
   }
 
   @override
@@ -281,17 +112,19 @@ class _MuseumCardState extends State<MuseumCard> {
                                 margin: EdgeInsets.only(bottom: 5),
                                 child: Row(children: <Widget>[
                                   Visibility(
-                                      visible: downloadState ==
+                                      visible: widget.downloadState ==
                                           DownloadState.NOT_DOWNLOADED,
                                       child: InkWell(
                                           onTap: onDownload,
                                           child: Icon(FeatherIcons.download,
                                               color: Colors.white))),
                                   Visibility(
-                                      visible: downloadState ==
-                                              DownloadState.DOWNLOADING ||
-                                          downloadState ==
-                                              DownloadState.DELETING,
+                                      visible: [
+                                        DownloadState.DOWNLOADING_DETAILS,
+                                        DownloadState.DOWNLOADING_IMAGES,
+                                        DownloadState.GENERATING_DATA,
+                                        DownloadState.DELETING
+                                      ].contains(widget.downloadState),
                                       child: SizedBox(
                                         child: CircularProgressIndicator(
                                             valueColor: AlwaysStoppedAnimation(
@@ -301,7 +134,7 @@ class _MuseumCardState extends State<MuseumCard> {
                                         width: 22,
                                       )),
                                   Visibility(
-                                      visible: downloadState ==
+                                      visible: widget.downloadState ==
                                           DownloadState.DOWNLOADED,
                                       child: InkWell(
                                           onTap: onDeleteData,
@@ -311,7 +144,11 @@ class _MuseumCardState extends State<MuseumCard> {
                           ]))),
               AnimatedCrossFade(
                   duration: Duration(milliseconds: 350),
-                  crossFadeState: downloadState == DownloadState.DOWNLOADING
+                  crossFadeState: [
+                    DownloadState.DOWNLOADING_DETAILS,
+                    DownloadState.DOWNLOADING_IMAGES,
+                    DownloadState.GENERATING_DATA,
+                  ].contains(widget.downloadState)
                       ? CrossFadeState.showSecond
                       : CrossFadeState.showFirst,
                   sizeCurve: Curves.ease,
@@ -328,21 +165,26 @@ class _MuseumCardState extends State<MuseumCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text("Downloading painting details",
-                              style: buildTextStyle(1)),
+                              style: buildTextStyle(
+                                  DownloadState.DOWNLOADING_DETAILS)),
                           SizedBox(height: columnTextGap),
-                          Text("Downloading images", style: buildTextStyle(2)),
+                          Text("Downloading images",
+                              style: buildTextStyle(
+                                  DownloadState.DOWNLOADING_IMAGES)),
                           SizedBox(height: columnTextGap),
-                          Text("Generating data", style: buildTextStyle(3))
+                          Text("Generating data",
+                              style:
+                                  buildTextStyle(DownloadState.GENERATING_DATA))
                         ],
                       )))
             ])));
   }
 
-  TextStyle buildTextStyle(int textStep) {
+  TextStyle buildTextStyle(DownloadState downloadState) {
     Color col;
-    if (textStep == downloadStep)
+    if (downloadState == widget.downloadState)
       col = colors['primary'];
-    else if (textStep < downloadStep)
+    else if (downloadState.index < widget.downloadState.index)
       col = Colors.black38;
     else
       col = colors['darkgray'];

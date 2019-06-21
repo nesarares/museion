@@ -4,9 +4,7 @@ import 'package:rxdart/rxdart.dart';
 enum TtsState { playing, stopped }
 
 class TextToSpeechService {
-  TextToSpeechService._privateConstructor();
-  static final TextToSpeechService instance =
-      TextToSpeechService._privateConstructor();
+  TextToSpeechService();
 
   FlutterTts flutterTts;
 

@@ -1,14 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:path_provider/path_provider.dart';
 
 class PaintingService {
-  PaintingService._privateConstructor();
-  static final PaintingService instance = PaintingService._privateConstructor();
+  PaintingService();
 
-  final DatabaseHelper dbLocal = DatabaseHelper.instance;
+  final DatabaseHelper dbLocal = getIt.get<DatabaseHelper>();
+
   final Firestore db = Firestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
 

@@ -2,18 +2,20 @@ import 'dart:io';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/pages/paintingDetailsPage.dart';
 import 'package:open_museum_guide/services/paintingService.dart';
 
 class PaintingCard extends StatelessWidget {
+  final PaintingService paintingService = getIt.get<PaintingService>();
+
   final Painting painting;
   final Function beforeNavigate;
   final Function afterNavigate;
   final bool showMuseumName;
   final double textGap = 8.0;
   final double fontSizeCard = 13;
-  static final PaintingService paintingService = PaintingService.instance;
 
   PaintingCard(
       {Key key,

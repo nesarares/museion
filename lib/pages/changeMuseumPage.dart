@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/roundIconButton.dart';
-import 'package:open_museum_guide/components/textHeader.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/museum.dart';
-import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 
@@ -15,9 +12,9 @@ class ChangeMuseumPage extends StatefulWidget {
 }
 
 class _ChangeMuseumPageState extends State<ChangeMuseumPage> {
+  final MuseumService museumService = getIt.get<MuseumService>();
+
   final double imageSize = 60;
-  MuseumService museumService = MuseumService.instance;
-  LoadingService loadingService = LoadingService.instance;
 
   void goBack() {
     Navigator.pop(context);

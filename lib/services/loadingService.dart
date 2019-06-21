@@ -1,34 +1,27 @@
 import 'package:flutter/services.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/services/cameraService.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
+import 'package:open_museum_guide/services/downloadService.dart';
 import 'package:open_museum_guide/services/locationService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/services/paintingService.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:tflite/tflite.dart';
 
 class LoadingService {
-  LoadingService._privateConstructor();
-  static final LoadingService instance = LoadingService._privateConstructor();
+  LoadingService();
 
-  static final TextToSpeechService textToSpeechService =
-      TextToSpeechService.instance;
-  static final PaintingService paintingService = PaintingService.instance;
-  static final MuseumService museumService = MuseumService.instance;
-  static final CameraService cameraService = CameraService.instance;
-  static final DetectionService detectionService = DetectionService.instance;
-  static final LocationService locationService = LocationService.instance;
-  final DatabaseHelper dbLocal = DatabaseHelper.instance;
-
-  static const platform =
-      const MethodChannel('com.openmg.open_museum_guide/opencv');
-
-  BehaviorSubject<bool> _dataLoadedSubject = BehaviorSubject.seeded(false);
-
-  Observable<bool> get isDataLoaded$ => _dataLoadedSubject.stream;
-  bool get isDataLoaded => _dataLoadedSubject.value;
+  final TextToSpeechService textToSpeechService =
+      getIt.get<TextToSpeechService>();
+  final PaintingService paintingService = getIt.get<PaintingService>();
+  final MuseumService museumService = getIt.get<MuseumService>();
+  final CameraService cameraService = getIt.get<CameraService>();
+  final DetectionService detectionService = getIt.get<DetectionService>();
+  final LocationService locationService = getIt.get<LocationService>();
+  final DownloadService downloadService = getIt.get<DownloadService>();
+  final DatabaseHelper dbLocal = getIt.get<DatabaseHelper>();
 
   Future<void> loadData() async {
     await loadModel();
@@ -36,30 +29,9 @@ class LoadingService {
     await textToSpeechService.loadTTS();
 
     await museumService.loadMuseums();
+    await downloadService.loadMuseumStates();
     // String currentMuseumId = "GWNdYOmSpgjkLxnLSroV";
     await locationService.detectAndChangeActiveMuseum();
-  }
-
-  Future<void> loadMuseumData() async {
-    if (museumService.activeMuseum == null) {
-      _dataLoadedSubject.add(false);
-      return;
-    }
-    List data =
-        await dbLocal.getPaintingsDataByMuseum(museumService.activeMuseum.id);
-    if (data.length == 0) {
-      _dataLoadedSubject.add(false);
-    } else {
-      await platform.invokeMethod("loadPaintingsData", {"data": data});
-      _dataLoadedSubject.add(true);
-    }
-  }
-
-  Future<void> unloadMuseumData(String id) async {
-    // await platform.invokeMethod("unloadPaintingsData");
-    if (museumService.activeMuseum.id == id) {
-      _dataLoadedSubject.add(false);
-    }
   }
 
   Future<String> loadModel() async {

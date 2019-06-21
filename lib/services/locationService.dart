@@ -1,12 +1,13 @@
 import 'package:location/location.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong/latlong.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 
 class LocationService {
-  LocationService._privateConstructor();
-  static final LocationService instance = LocationService._privateConstructor();
-  static final MuseumService museumService = MuseumService.instance;
+  LocationService();
+
+  final MuseumService museumService = getIt.get<MuseumService>();
 
   final Distance distance = new Distance();
 

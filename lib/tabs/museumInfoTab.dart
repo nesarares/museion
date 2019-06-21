@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 
 class MuseumInfoTab extends StatelessWidget {
-  static final MuseumService museumService = MuseumService.instance;
+  final MuseumService museumService = getIt.get<MuseumService>();
+
   final double sizeIconFacility = 38;
 
   Widget buildSection(String title, String content, {bool newLines = false}) {

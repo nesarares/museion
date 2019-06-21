@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/pages/tabsPage.dart';
 import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
@@ -9,7 +10,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static final LoadingService loadingService = LoadingService.instance;
+  final LoadingService loadingService = getIt.get<LoadingService>();
 
   @override
   void initState() {

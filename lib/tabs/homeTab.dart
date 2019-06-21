@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:open_museum_guide/components/customDivider.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/pages/changeMuseumPage.dart';
-import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/services/locationService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
@@ -18,9 +18,8 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  static final LoadingService loadingService = LoadingService.instance;
-  static final LocationService locationService = LocationService.instance;
-  static final MuseumService museumService = MuseumService.instance;
+  final LocationService locationService = getIt.get<LocationService>();
+  final MuseumService museumService = getIt.get<MuseumService>();
 
   void changeLocation() {
     Navigator.push(
@@ -113,7 +112,7 @@ class _HomeTabState extends State<HomeTab> {
     return Stack(
       children: <Widget>[
         StreamBuilder<Object>(
-            stream: loadingService.isDataLoaded$,
+            stream: museumService.isDataLoaded$,
             builder: (ctxLoaded, snapLoaded) {
               return !snapLoaded.hasData ||
                       (snapLoaded.hasData && snapLoaded.data)

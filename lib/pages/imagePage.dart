@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
 import 'package:open_museum_guide/components/roundIconButton.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/detectionService.dart';
 import 'package:after_layout/after_layout.dart';
@@ -20,8 +21,8 @@ class ImagePage extends StatefulWidget {
 
 class _ImagePageState extends State<ImagePage>
     with AfterLayoutMixin<ImagePage> {
-  static final PaintingService paintingService = PaintingService.instance;
-  static final DetectionService detectionService = DetectionService.instance;
+  final PaintingService paintingService = getIt.get<PaintingService>();
+  final DetectionService detectionService = getIt.get<DetectionService>();
 
   Painting painting;
 

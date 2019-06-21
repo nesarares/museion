@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/textHeader.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,7 +13,8 @@ class HistoryTab extends StatefulWidget {
 }
 
 class _HistoryTabState extends State<HistoryTab> {
-  final DatabaseHelper dbLocal = DatabaseHelper.instance;
+  final DatabaseHelper dbLocal = getIt.get<DatabaseHelper>();
+
   List<Painting> paintingList = [];
 
   @override

@@ -3,18 +3,18 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:tflite/tflite.dart';
 import 'package:image/image.dart' as img;
 
 class DetectionService {
-  DetectionService._privateConstructor();
-  static final DetectionService instance =
-      DetectionService._privateConstructor();
+  DetectionService();
+
+  final DatabaseHelper dbLocal = getIt.get<DatabaseHelper>();
 
   Stopwatch stopwatch = new Stopwatch();
   static const int DETECT_MAX_SIZE = 720;
-  static final DatabaseHelper dbLocal = DatabaseHelper.instance;
   static const platform =
       const MethodChannel('com.openmg.open_museum_guide/opencv');
 

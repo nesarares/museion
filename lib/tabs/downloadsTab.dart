@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/textHeader.dart';
 import 'package:open_museum_guide/components/museumCard.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:open_museum_guide/models/museum.dart';
+import 'package:open_museum_guide/services/downloadService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
 
@@ -14,8 +16,10 @@ class DownloadsTab extends StatefulWidget {
 }
 
 class _DownloadsTabState extends State<DownloadsTab> {
+  final MuseumService museumService = getIt.get<MuseumService>();
+  final DownloadService downloadService = getIt.get<DownloadService>();
+
   static const double _columnCardsGap = 10.0;
-  static final MuseumService museumService = MuseumService.instance;
 
   @override
   void initState() {
@@ -23,7 +27,7 @@ class _DownloadsTabState extends State<DownloadsTab> {
   }
 
   void _deleteDatabase() async {
-    DatabaseHelper db = DatabaseHelper.instance;
+    DatabaseHelper db = getIt.get<DatabaseHelper>();
     try {
       await db.removeAllRecords();
 
@@ -37,7 +41,8 @@ class _DownloadsTabState extends State<DownloadsTab> {
     }
   }
 
-  Widget buildListItem(BuildContext ctxt, int index, List<Museum> museums) {
+  Widget buildListItem(BuildContext ctxt, int index, List<Museum> museums,
+      Map<String, DownloadState> states) {
     Museum current = museums[index];
     return Column(
       children: <Widget>[
@@ -45,6 +50,7 @@ class _DownloadsTabState extends State<DownloadsTab> {
           imageUrl: current.imageUrl,
           title: current.title,
           museumId: current.id,
+          downloadState: states[current.id],
         ),
         SizedBox(height: _columnCardsGap),
       ],
@@ -57,31 +63,37 @@ class _DownloadsTabState extends State<DownloadsTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         TextHeader(header: 'Download museum data'),
-        // RaisedButton(
-        //   onPressed: _deleteDatabase,
-        //   child: Text("DeleteDatabase"),
-        // ),
-        StreamBuilder<Object>(
+        StreamBuilder<List<Museum>>(
             stream: museumService.museums$,
-            builder: (ctx, snap) {
-              return !snap.hasData
-                  ? SizedBox(
-                      width: 25,
-                      height: 25,
-                      child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation(colors['darkGray']),
-                          strokeWidth: 2.5),
-                    )
-                  : Expanded(
-                      child: ListView.builder(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        itemCount: (snap.data as List<Museum>).length,
-                        itemBuilder: (ctxt, index) => buildListItem(
-                            ctxt, index, (snap.data as List<Museum>)),
-                      ),
-                    );
+            builder: (ctx, snapMuseums) {
+              return StreamBuilder<Map<String, DownloadState>>(
+                  stream: downloadService.museumStates$,
+                  builder: (context, snapStates) {
+                    return !snapMuseums.hasData || !snapStates.hasData
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 50),
+                              child: SizedBox(
+                                width: 25,
+                                height: 25,
+                                child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation(
+                                        colors['darkGray']),
+                                    strokeWidth: 2.5),
+                              ),
+                            ),
+                          )
+                        : Expanded(
+                            child: ListView.builder(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 20,
+                            ),
+                            itemCount: snapMuseums.data.length,
+                            itemBuilder: (ctxt, index) => buildListItem(
+                                ctxt, index, snapMuseums.data, snapStates.data),
+                          ));
+                  });
             })
       ],
     );

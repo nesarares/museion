@@ -3,19 +3,18 @@ import 'dart:io';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flushbar/flushbar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/pages/cameraPage.dart';
 import 'package:open_museum_guide/pages/imagePage.dart';
-import 'package:open_museum_guide/services/loadingService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/tabs/historyTab.dart';
 import 'package:open_museum_guide/tabs/homeTab.dart';
 import 'package:open_museum_guide/tabs/museumInfoTab.dart';
 import 'package:open_museum_guide/tabs/downloadsTab.dart';
 import 'package:open_museum_guide/utils/constants.dart';
-import 'dart:math' as math;
+import 'package:open_museum_guide/utils/guiUtils.dart';
 
 import 'package:unicorndial/unicorndial.dart';
 
@@ -26,8 +25,8 @@ class TabsPage extends StatefulWidget {
 }
 
 class _TabsPageState extends State<TabsPage> {
-  LoadingService loadingService = LoadingService.instance;
-  MuseumService museumService = MuseumService.instance;
+  final MuseumService museumService = getIt.get<MuseumService>();
+
   StreamController<int> indexcontroller = StreamController<int>.broadcast();
   int selectedPage = 0;
   final controller = PageController(initialPage: 0);
@@ -56,33 +55,11 @@ class _TabsPageState extends State<TabsPage> {
         MaterialPageRoute(builder: (context) => ImagePage(image: image)));
   }
 
-  void openErrorNoData(BuildContext context) {
+  void openErrorNoData() {
     var message = museumService.activeMuseum != null
         ? 'Please download the data for "${museumService.activeMuseum.title}" from the "Downloads" tab'
         : 'Please select your current location from the "Home" tab';
-    Flushbar(
-      flushbarPosition: FlushbarPosition.TOP,
-      messageText: Text(
-        message,
-        style: TextStyle(
-            fontWeight: FontWeight.w700, color: Colors.white, fontSize: 15),
-      ),
-      icon: Icon(
-        FeatherIcons.alertCircle,
-        color: Colors.white,
-        size: 24,
-      ),
-      backgroundColor: Colors.red,
-      duration: Duration(seconds: 5),
-      animationDuration: Duration(milliseconds: 400),
-      aroundPadding: EdgeInsets.all(8),
-      borderRadius: 8,
-      forwardAnimationCurve: Curves.ease,
-      boxShadow: BoxShadow(
-          color: Colors.black38,
-          blurRadius: 5,
-          offset: Offset.fromDirection(math.pi / 2, 2)),
-    ).show(context);
+    GuiUtils.showErrorNotification(context, message: message);
   }
 
   void onPageChanged(int pageIndex) {
@@ -109,7 +86,7 @@ class _TabsPageState extends State<TabsPage> {
           controller: controller,
           onPageChanged: onPageChanged,
           children: <Widget>[
-            HomeTab(onErrorTap: () => this.openErrorNoData(context)),
+            HomeTab(onErrorTap: () => this.openErrorNoData()),
             MuseumInfoTab(),
             HistoryTab(),
             DownloadsTab()
@@ -117,7 +94,7 @@ class _TabsPageState extends State<TabsPage> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: StreamBuilder<Object>(
-            stream: loadingService.isDataLoaded$,
+            stream: museumService.isDataLoaded$,
             builder: (ctx, snap) {
               var childButtons = List<UnicornButton>();
               childButtons.add(UnicornButton(
@@ -155,7 +132,7 @@ class _TabsPageState extends State<TabsPage> {
                   animationDuration: 120,
                   onMainButtonPressed: snap.hasData && snap.data
                       ? () {}
-                      : () => openErrorNoData(ctx),
+                      : () => openErrorNoData(),
                   childButtons: snap.hasData && snap.data ? childButtons : []);
             }),
         bottomNavigationBar: StreamBuilder(

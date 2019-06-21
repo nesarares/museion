@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/roundIconButton.dart';
+import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -17,7 +18,7 @@ class PaintingDetailsPage extends StatefulWidget {
 }
 
 class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
-  TextToSpeechService ttsService = TextToSpeechService.instance;
+  final TextToSpeechService ttsService = getIt.get<TextToSpeechService>();
 
   static const double fontSizeTitle = 14;
   static const double fontSizeText = 18;
