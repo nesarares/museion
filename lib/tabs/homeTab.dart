@@ -108,66 +108,74 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Stack buildMuseum(AsyncSnapshot<Object> snapMuseum) {
-    return Stack(
-      children: <Widget>[
-        StreamBuilder<Object>(
-            stream: museumService.isDataLoaded$,
-            builder: (ctxLoaded, snapLoaded) {
-              return !snapLoaded.hasData ||
-                      (snapLoaded.hasData && snapLoaded.data)
-                  ? Container()
-                  : buildTopErrorButton();
-            }),
-        Container(
-            padding: EdgeInsets.fromLTRB(50, 20, 50, 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  "WELCOME TO",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontFamily: 'Rufina',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                CustomDivider(),
-                Text(
-                  (snapMuseum.data as Museum).title.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 50,
-                    fontFamily: 'Rufina',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                CustomDivider(),
-                Image.asset(
-                  'assets/images/museum.png',
-                  width: 132,
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 30),
-                  child: Row(
+  Widget buildMuseum(AsyncSnapshot<Object> snapMuseum) {
+    return LayoutBuilder(builder: (context, viewportConstraints) {
+      return Stack(
+        children: <Widget>[
+          StreamBuilder<Object>(
+              stream: museumService.isDataLoaded$,
+              builder: (ctxLoaded, snapLoaded) {
+                return !snapLoaded.hasData ||
+                        (snapLoaded.hasData && snapLoaded.data)
+                    ? Container()
+                    : buildTopErrorButton();
+              }),
+          SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(minHeight: viewportConstraints.maxHeight),
+              child: Container(
+                  padding: EdgeInsets.fromLTRB(50, 20, 50, 20),
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Text("Not here? "),
-                      InkWell(
-                        child: Text(
-                          "Change location",
-                          style: TextStyle(color: colors['primary']),
+                      Text(
+                        "WELCOME TO",
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontFamily: 'Rufina',
+                          fontWeight: FontWeight.w700,
                         ),
-                        onTap: changeLocation,
+                      ),
+                      CustomDivider(),
+                      Text(
+                        (snapMuseum.data as Museum).title.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 50,
+                          fontFamily: 'Rufina',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      CustomDivider(),
+                      Image.asset(
+                        'assets/images/museum.png',
+                        width: 132,
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 30),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text("Not here? "),
+                            InkWell(
+                              child: Text(
+                                "Change location",
+                                style: TextStyle(color: colors['primary']),
+                              ),
+                              onTap: changeLocation,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                  ),
-                ),
-              ],
-            )),
-      ],
-    );
+                  )),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget buildTopErrorButton() {

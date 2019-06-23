@@ -100,7 +100,7 @@ class PaintingCard extends StatelessWidget {
                               SizedBox(height: textGap),
                               Visibility(
                                 visible: !showMuseumName,
-                                child: Text("${painting?.year}",
+                                child: Text(painting?.year ?? " ",
                                     style: TextStyle(
                                         fontSize: fontSizeCard - 1,
                                         fontWeight: FontWeight.w400)),
@@ -111,7 +111,7 @@ class PaintingCard extends StatelessWidget {
                               Visibility(
                                 visible: !showMuseumName,
                                 child: Text(
-                                  "${painting?.text?.substring(0, 50)}...",
+                                  painting?.text?.substring(0, 50) ?? " ",
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
                                       fontSize: fontSizeCard - 1.5,

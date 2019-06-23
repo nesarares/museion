@@ -6,7 +6,9 @@ import 'package:open_museum_guide/components/roundIconButton.dart';
 import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
+import 'package:open_museum_guide/utils/constants.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class PaintingDetailsPage extends StatefulWidget {
   final Painting painting;
@@ -33,9 +35,17 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
     Navigator.pop(context);
   }
 
+  void launchWebpage(String wiki) async {
+    if (await url_launcher.canLaunch(wiki)) {
+      await url_launcher.launch(wiki);
+    } else {
+      throw 'Could not launch $wiki';
+    }
+  }
+
   Widget buildSection(String title, String content,
-      {double fontSText = fontSizeText}) {
-    return content == null || content == ""
+      {double fontSText = fontSizeText, String wiki}) {
+    return content?.isEmpty ?? true
         ? Container()
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,6 +66,21 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                     color: fontColor),
                 textAlign: TextAlign.justify,
               ),
+              if (wiki != null && wiki.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: InkWell(
+                    onTap: () => launchWebpage(wiki),
+                    child: Text(
+                      "Read more on wikipedia",
+                      style: TextStyle(
+                        fontSize: fontSizeTitle,
+                        fontWeight: FontWeight.w400,
+                        color: colors['primary'],
+                      ),
+                    ),
+                  ),
+                ),
               SizedBox(
                 height: 25,
               ),
@@ -63,25 +88,37 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
           );
   }
 
+  Widget buildWikidataSection() {
+    return Row(
+      children: <Widget>[
+        Text(
+          "Data prvided by ",
+          style: TextStyle(
+            fontSize: fontSizeTitle,
+            fontWeight: FontWeight.w400,
+            color: fontColor,
+          ),
+        ),
+        InkWell(
+          onTap: () => launchWebpage('https://www.wikidata.org'),
+          child: Text(
+            "WikiData",
+            style: TextStyle(
+              fontSize: fontSizeTitle,
+              fontWeight: FontWeight.w400,
+              color: colors['primary'],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: StreamBuilder<TtsState>(
-          stream: ttsService.ttsState$,
-          builder: (ctx, snap) {
-            return snap.data == TtsState.stopped
-                ? FloatingActionButton(
-                    onPressed: () {
-                      ttsService.speak(widget.painting.text);
-                    },
-                    child: Icon(Icons.music_note),
-                  )
-                : FloatingActionButton(
-                    onPressed: ttsService.stop,
-                    child: Icon(Icons.stop),
-                  );
-          }),
+      floatingActionButton: buildFAB(),
       body: Stack(
         children: <Widget>[
           SlidingUpPanel(
@@ -91,29 +128,35 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
             parallaxOffset: 0.3,
             body: Center(
               child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                      image: DecorationImage(
-                          image: FileImage(File(widget.painting.imagePath)),
-                          fit: BoxFit.cover)),
-                  child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                      child: Container(
-                        decoration: new BoxDecoration(
-                            color: Colors.black.withOpacity(0.4)),
-                        child: Center(
-                            child: Padding(
-                          padding: const EdgeInsets.only(bottom: 30),
-                          //   PhotoView(
-                          //       imageProvider:
-                          //           FileImage(File(widget.painting.imagePath))),
-                          // )
-                          child: Hero(
-                              tag: widget.painting.id,
-                              child:
-                                  Image.file(File(widget.painting.imagePath))),
-                        )),
-                      ))),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: FileImage(
+                        File(widget.painting.imagePath),
+                      ),
+                      fit: BoxFit.cover),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
+                    decoration:
+                        new BoxDecoration(color: Colors.black.withOpacity(0.4)),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 30),
+                        child: Hero(
+                          tag: widget.painting.id,
+                          child: Image.file(
+                            File(
+                              widget.painting.imagePath,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
             panel: Container(
               width: double.infinity,
@@ -156,15 +199,19 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                           vertical: 20, horizontal: 30),
                       scrollDirection: Axis.vertical,
                       children: <Widget>[
-                        buildSection("Artist", "${widget.painting?.artist}"),
-                        buildSection("Year", "${widget.painting?.year}"),
-                        buildSection("Details", "${widget.painting?.text}",
-                            fontSText: fontSizeText - 1.5),
+                        buildSection("Artist", widget.painting?.artist),
                         buildSection(
-                            "Dimensions", "${widget.painting?.dimensions}"),
-                        buildSection("Medium", "${widget.painting?.medium}"),
-                        buildSection(
-                            "Copyright", "${widget.painting?.copyright}"),
+                          "Details",
+                          widget.painting?.text,
+                          fontSText: fontSizeText - 1.5,
+                          wiki: widget.painting?.wiki,
+                        ),
+                        buildSection("Year", widget.painting?.year),
+                        buildSection("Dimensions", widget.painting?.dimensions),
+                        buildSection("Medium", widget.painting?.medium),
+                        buildSection("Copyright", widget.painting?.copyright),
+                        if ((widget.painting?.museum ?? '') != "Musée d'Orsay")
+                          buildWikidataSection(),
                       ],
                     ),
                   )
@@ -185,5 +232,25 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
         ],
       ),
     );
+  }
+
+  StreamBuilder<TtsState> buildFAB() {
+    return (widget.painting?.text ?? null) == null
+        ? null
+        : StreamBuilder<TtsState>(
+            stream: ttsService.ttsState$,
+            builder: (ctx, snap) {
+              return snap.data == TtsState.stopped
+                  ? FloatingActionButton(
+                      onPressed: () {
+                        ttsService.speak(widget.painting.text);
+                      },
+                      child: Icon(Icons.music_note),
+                    )
+                  : FloatingActionButton(
+                      onPressed: ttsService.stop,
+                      child: Icon(Icons.stop),
+                    );
+            });
   }
 }

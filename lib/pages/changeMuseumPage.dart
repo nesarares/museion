@@ -57,6 +57,7 @@ class _ChangeMuseumPageState extends State<ChangeMuseumPage> {
     String query = editingController.text;
     if (debounce?.isActive ?? false) debounce.cancel();
     debounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
       setState(() {
         searchText = query;
       });
@@ -64,6 +65,7 @@ class _ChangeMuseumPageState extends State<ChangeMuseumPage> {
   }
 
   void searchPressed() {
+    if (!mounted) return;
     setState(() {
       if (this.searchIcon.icon == FeatherIcons.search) {
         this.searchIcon = Icon(FeatherIcons.x);

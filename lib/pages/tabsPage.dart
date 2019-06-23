@@ -37,9 +37,6 @@ class _TabsPageState extends State<TabsPage> {
   }
 
   Future<void> openGallery() async {
-    // double ratio = MediaQuery.of(context).devicePixelRatio;
-    // double maxWidth = MediaQuery.of(context).size.width * ratio * 2;
-    // double maxHeight = MediaQuery.of(context).size.height * ratio * 2;
     final double maxDimensions = 2500;
     File image = await ImagePicker.pickImage(
         source: ImageSource.gallery,
