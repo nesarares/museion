@@ -84,7 +84,10 @@ class MuseumService {
         .map((m) => Museum.fromMap({
               Museum.columnId: m.id,
               Museum.columnTitle: m.title,
-              Museum.columnImageUrl: m.imageUrl
+              Museum.columnImageUrl: m.imageUrl,
+              Museum.columnCity: m.city,
+              Museum.columnCountry: m.country,
+              Museum.columnCoordinates: m.coordinates
             }))
         .toList();
 

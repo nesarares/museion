@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/museumService.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MuseumInfoTab extends StatelessWidget {
   final MuseumService museumService = getIt.get<MuseumService>();
 
-  final double sizeIconFacility = 38;
+  final double sizeIconFacility = 35;
 
   Widget buildSection(String title, String content, {bool newLines = false}) {
     if (content == null || content == "") {
@@ -64,36 +65,74 @@ class MuseumInfoTab extends StatelessWidget {
           SizedBox(
             height: 12,
           ),
-          Wrap(
-            direction: Axis.horizontal,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            alignment: WrapAlignment.center,
-            spacing: 20,
-            children: list.map((facility) {
-              var icon;
-              switch (facility) {
-                case 'wifi':
-                  icon = Icons.wifi;
-                  break;
-                case 'cloackrooms':
-                case 'cloakrooms':
-                  icon = Icons.portrait;
-                  break;
-                case 'lifts':
-                  icon = Icons.arrow_upward;
-                  break;
-                case 'wheelchairs':
-                  icon = Icons.accessible;
-                  break;
-              }
-              if (icon == null) return Container();
-              return Column(
-                children: <Widget>[
-                  Icon(icon, size: sizeIconFacility),
-                  Text('${facility[0].toUpperCase()}${facility.substring(1)}')
-                ],
-              );
-            }).toList(),
+          Container(
+            width: double.infinity,
+            child: Wrap(
+              direction: Axis.horizontal,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              alignment: WrapAlignment.spaceEvenly,
+              runSpacing: 20,
+              spacing: 20,
+              children: list.map((facility) {
+                var icon;
+                switch (facility) {
+                  case 'audio guide':
+                    icon = FontAwesomeIcons.headphonesAlt;
+                    break;
+                  case 'café-restaurant':
+                    icon = FontAwesomeIcons.utensils;
+                    break;
+                  case 'changing rooms':
+                    icon = FontAwesomeIcons.baby;
+                    break;
+                  case 'cloakrooms':
+                    icon = FontAwesomeIcons.portrait;
+                    break;
+                  case 'guided tours':
+                    icon = FontAwesomeIcons.userCheck;
+                    break;
+                  case 'left-luggage office':
+                    icon = FontAwesomeIcons.suitcase;
+                    break;
+                  case 'lifts':
+                    icon = FontAwesomeIcons.arrowUp;
+                    break;
+                  case 'parking':
+                    icon = FontAwesomeIcons.parking;
+                    break;
+                  case 'photography':
+                    icon = FontAwesomeIcons.cameraRetro;
+                    break;
+                  case 'shopping':
+                    icon = FontAwesomeIcons.shoppingCart;
+                    break;
+                  case 'wheelchairs':
+                    icon = FontAwesomeIcons.wheelchair;
+                    break;
+                  case 'wifi':
+                    icon = FontAwesomeIcons.wifi;
+                    break;
+                }
+                if (icon == null) return Container();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(icon, size: sizeIconFacility),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 82),
+                        child: Text(
+                          '${facility[0].toUpperCase()}${facility.substring(1)}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),

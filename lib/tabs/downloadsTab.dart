@@ -2,11 +2,8 @@ import 'dart:async';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:open_museum_guide/components/textHeader.dart';
 import 'package:open_museum_guide/components/museumCard.dart';
 import 'package:open_museum_guide/main.dart';
-import 'package:open_museum_guide/services/databaseHelper.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/downloadService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
@@ -66,21 +63,6 @@ class _DownloadsTabState extends State<DownloadsTab> {
         searchText = query;
       });
     });
-  }
-
-  void _deleteDatabase() async {
-    DatabaseHelper db = getIt.get<DatabaseHelper>();
-    try {
-      await db.removeAllRecords();
-
-      Fluttertoast.showToast(
-          msg: "Deleted all records",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM);
-    } catch (e) {
-      print("Could not delete records");
-      print(e);
-    }
   }
 
   void searchPressed() {

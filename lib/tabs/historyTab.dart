@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:open_museum_guide/components/textHeader.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
 import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';

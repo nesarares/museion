@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:open_museum_guide/main.dart';
-import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/services/museumService.dart';

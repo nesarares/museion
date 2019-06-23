@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/services/cameraService.dart';

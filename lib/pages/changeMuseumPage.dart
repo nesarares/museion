@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:open_museum_guide/components/roundIconButton.dart';
 import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/museumService.dart';
-import 'package:open_museum_guide/utils/constants.dart';
 
 class ChangeMuseumPage extends StatefulWidget {
   @override
