@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:open_museum_guide/components/customDivider.dart';
@@ -7,6 +8,39 @@ import 'package:open_museum_guide/pages/changeMuseumPage.dart';
 import 'package:open_museum_guide/services/locationService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
+import 'dart:math' as math;
+
+class HomeImageClipper extends CustomClipper<Path> {
+  num degToRad(num deg) => deg * (math.pi / 180.0);
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0.0, size.height * 0.7);
+    path.cubicTo(
+      0,
+      size.height,
+      size.width * 0.45,
+      size.height,
+      size.width * 0.5,
+      size.height,
+    );
+    path.cubicTo(
+      size.width * 0.55,
+      size.height,
+      size.width * 0.9,
+      size.height,
+      size.width,
+      size.height * 0.5,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(HomeImageClipper oldClipper) => false;
+}
 
 class HomeTab extends StatefulWidget {
   final Widget child;
@@ -108,74 +142,109 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget buildMuseum(AsyncSnapshot<Object> snapMuseum) {
+  Widget buildMuseum(Museum museum) {
     return LayoutBuilder(builder: (context, viewportConstraints) {
       return Stack(
         children: <Widget>[
-          StreamBuilder<Object>(
-              stream: museumService.isDataLoaded$,
-              builder: (ctxLoaded, snapLoaded) {
-                return !snapLoaded.hasData ||
-                        (snapLoaded.hasData && snapLoaded.data)
-                    ? Container()
-                    : buildTopErrorButton();
-              }),
+          buildBackgroundImage(context, museum),
           SingleChildScrollView(
             child: ConstrainedBox(
               constraints:
                   BoxConstraints(minHeight: viewportConstraints.maxHeight),
-              child: Container(
-                  padding: EdgeInsets.fromLTRB(50, 20, 50, 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        "WELCOME TO",
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontFamily: 'Rufina',
-                          fontWeight: FontWeight.w700,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.fromLTRB(50, 80, 50, 20),
+                    child: Column(
+                      children: <Widget>[
+                        Text(
+                          "WELCOME TO",
+                          style: TextStyle(
+                              fontSize: 28,
+                              fontFamily: 'Rufina',
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
                         ),
-                      ),
-                      CustomDivider(),
-                      Text(
-                        (snapMuseum.data as Museum).title.toUpperCase(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 50,
-                          fontFamily: 'Rufina',
-                          fontWeight: FontWeight.w700,
+                        CustomDivider(),
+                        Text(
+                          museum.title.toUpperCase(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 50,
+                              fontFamily: 'Rufina',
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
                         ),
-                      ),
-                      CustomDivider(),
-                      Image.asset(
-                        'assets/images/museum.png',
-                        width: 132,
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 30),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text("Not here? "),
-                            InkWell(
-                              child: Text(
-                                "Change location",
-                                style: TextStyle(color: colors['primary']),
-                              ),
-                              onTap: changeLocation,
-                            ),
-                          ],
+                        SizedBox.fromSize(
+                          size: Size.fromHeight(30),
                         ),
-                      ),
-                    ],
-                  )),
+                        Text(
+                          "${museum.city} - ${museum.country}".toUpperCase(),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 3),
+                        )
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).size.height * 0.15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("Not here? "),
+                        InkWell(
+                          child: Text(
+                            "Change location",
+                            style: TextStyle(color: colors['primary']),
+                          ),
+                          onTap: changeLocation,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
+          ),
+          StreamBuilder<Object>(
+            stream: museumService.isDataLoaded$,
+            builder: (ctxLoaded, snapLoaded) {
+              return !snapLoaded.hasData ||
+                      (snapLoaded.hasData && snapLoaded.data)
+                  ? Container()
+                  : buildTopErrorButton();
+            },
           ),
         ],
       );
     });
+  }
+
+  Widget buildBackgroundImage(BuildContext context, Museum museum) {
+    double val = (museum.title.hashCode % 360).toDouble();
+    return ClipPath(
+      clipper: HomeImageClipper(),
+      child: Container(
+        width: double.infinity,
+        height: MediaQuery.of(context).size.height * 0.65,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: CachedNetworkImageProvider(museum.imageUrl),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              HSLColor.fromAHSL(1, val, 0.85, 0.2).toColor(),
+              // Color.fromRGBO(val, 7, 7, 1),
+              BlendMode.multiply,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget buildTopErrorButton() {
@@ -190,14 +259,14 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Object>(
+    return StreamBuilder<Museum>(
         stream: museumService.activeMuseum$,
         builder: (ctxMuseum, snapMuseum) {
           return snapMuseum.connectionState != ConnectionState.active
               ? Container()
               : snapMuseum.data == null
                   ? buildNoLocation()
-                  : buildMuseum(snapMuseum);
+                  : buildMuseum(snapMuseum.data);
         });
   }
 }

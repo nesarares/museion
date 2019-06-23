@@ -112,7 +112,7 @@ class _ImagePageState extends State<ImagePage>
                                 ),
                               ]),
                           child: Text(
-                            "Could not detect any painting 😢",
+                            "Could not recognize any painting 😢",
                             style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold),
