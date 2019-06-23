@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/roundIconButton.dart';
 import 'package:open_museum_guide/main.dart';
@@ -14,7 +17,87 @@ class ChangeMuseumPage extends StatefulWidget {
 class _ChangeMuseumPageState extends State<ChangeMuseumPage> {
   final MuseumService museumService = getIt.get<MuseumService>();
 
+  List<Museum> museumList = [];
+  List<Museum> filteredMuseumList = [];
+
+  TextEditingController editingController = TextEditingController();
+  String searchText = "";
+  Timer debounce;
+
+  Icon searchIcon = Icon(FeatherIcons.search);
+  Widget appBarTitle = Padding(
+    padding: EdgeInsets.only(top: 25),
+    child: Text('Select location'),
+  );
+
   final double imageSize = 60;
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+    editingController.addListener(onSearch);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    editingController.dispose();
+  }
+
+  void loadData() async {
+    List<Museum> list = museumService.museums;
+    setState(() {
+      museumList = list;
+      filteredMuseumList = list;
+    });
+  }
+
+  void onSearch() {
+    String query = editingController.text;
+    if (debounce?.isActive ?? false) debounce.cancel();
+    debounce = Timer(const Duration(milliseconds: 250), () {
+      setState(() {
+        searchText = query;
+      });
+    });
+  }
+
+  void searchPressed() {
+    setState(() {
+      if (this.searchIcon.icon == FeatherIcons.search) {
+        this.searchIcon = Icon(FeatherIcons.x);
+        this.appBarTitle = Padding(
+          padding: EdgeInsets.only(top: 25),
+          child: TextField(
+            controller: editingController,
+            autofocus: true,
+            style: TextStyle(
+              fontFamily: 'Rufina',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: InputDecoration.collapsed(
+              hintText: 'Type museum, city, country...',
+              hintStyle: TextStyle(
+                fontFamily: 'Rufina',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+      } else {
+        this.searchIcon = Icon(FeatherIcons.search);
+        this.appBarTitle = Padding(
+          padding: EdgeInsets.only(top: 25),
+          child: Text('Select location'),
+        );
+        filteredMuseumList = museumList;
+        editingController.clear();
+      }
+    });
+  }
 
   void goBack() {
     Navigator.pop(context);
@@ -23,6 +106,30 @@ class _ChangeMuseumPageState extends State<ChangeMuseumPage> {
   void changeMuseum(String id) {
     museumService.changeActiveMuseum(id);
     goBack();
+  }
+
+  Widget buildList() {
+    if (searchText.isNotEmpty) {
+      searchText = searchText.toLowerCase();
+      var filtered = museumList.where((museum) {
+        return museum.title.toLowerCase().contains(searchText) ||
+            museum.country.toLowerCase().contains(searchText) ||
+            museum.city.toLowerCase().contains(searchText);
+      }).toList();
+      filteredMuseumList = filtered;
+    } else {
+      filteredMuseumList = museumList;
+    }
+
+    return filteredMuseumList.length != 0
+        ? ListView.builder(
+            itemCount: filteredMuseumList.length,
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            itemBuilder: (BuildContext context, int index) {
+              return museumView(filteredMuseumList[index]);
+            },
+          )
+        : Center(child: Text("Empty"));
   }
 
   Widget museumView(Museum museum) => InkWell(
@@ -66,61 +173,33 @@ class _ChangeMuseumPageState extends State<ChangeMuseumPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Museum>>(
-        stream: museumService.museums$,
-        builder: (context, snapshot) {
-          var museumList = snapshot.data;
-          return Scaffold(
-            body: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      RoundIconButton(
-                        icon: Icons.arrow_back,
-                        onPressed: goBack,
-                        iconSize: 24,
-                        color: Colors.black,
-                      ),
-                      Text(
-                        "Select location",
-                        softWrap: true,
-                        style: TextStyle(
-                            fontFamily: 'Rufina',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: !snapshot.hasData
-                      ? Center(
-                          child: SizedBox(
-                            width: 25,
-                            height: 25,
-                            child: CircularProgressIndicator(
-                                valueColor:
-                                    AlwaysStoppedAnimation(colors['darkGray']),
-                                strokeWidth: 2.5),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: museumList.length,
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          itemBuilder: (BuildContext context, int index) {
-                            return museumView(museumList[index]);
-                          },
-                        ),
-                ),
-              ],
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(80),
+        child: AppBar(
+          titleSpacing: 20,
+          title: appBarTitle,
+          leading: Container(
+            margin: const EdgeInsets.fromLTRB(20, 20, 0, 0),
+            child: IconButton(
+              icon: Icon(
+                FeatherIcons.arrowLeft,
+              ),
+              onPressed: goBack,
             ),
-          );
-        });
+          ),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 20, 20, 0),
+              child: IconButton(
+                icon: searchIcon,
+                onPressed: searchPressed,
+              ),
+            )
+          ],
+        ),
+      ),
+      body: buildList(),
+    );
   }
 }

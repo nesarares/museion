@@ -46,7 +46,25 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Museion',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.deepOrange, fontFamily: 'Lato'),
+      theme: ThemeData(
+        primarySwatch: Colors.deepOrange,
+        fontFamily: 'Lato',
+        appBarTheme: AppBarTheme(
+          elevation: 0,
+          color: Colors.transparent,
+          textTheme: TextTheme(
+            title: TextStyle(
+              color: Colors.black,
+              fontFamily: 'Rufina',
+              fontWeight: FontWeight.bold,
+              fontSize: 26,
+            ),
+          ),
+          iconTheme: IconThemeData(
+            color: Colors.black,
+          ),
+        ),
+      ),
       home: HomePage(),
     );
   }
