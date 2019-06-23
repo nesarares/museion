@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:open_museum_guide/components/paintingCard.dart';
@@ -25,6 +26,7 @@ class _ImagePageState extends State<ImagePage>
   final DetectionService detectionService = getIt.get<DetectionService>();
 
   Painting painting;
+  bool noDetection = false;
 
   @override
   void initState() {
@@ -43,7 +45,9 @@ class _ImagePageState extends State<ImagePage>
     if (id != null) {
       loadPainting(id);
     } else {
-      print('No detection');
+      setState(() {
+        noDetection = true;
+      });
     }
   }
 
@@ -85,10 +89,39 @@ class _ImagePageState extends State<ImagePage>
                 ),
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: PaintingCard(
-                    beforeNavigate: () {},
-                    painting: painting,
-                  ),
+                  child: noDetection
+                      ? Container(
+                          margin: EdgeInsets.only(bottom: 40),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 25),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100),
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomLeft,
+                                end: Alignment.topRight,
+                                colors: [
+                                  Color.fromRGBO(225, 225, 225, 0.8),
+                                  Color.fromRGBO(255, 255, 255, 0.8),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 15,
+                                  offset: Offset.fromDirection(math.pi / 2, 10),
+                                ),
+                              ]),
+                          child: Text(
+                            "Could not detect any painting 😢",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      : PaintingCard(
+                          beforeNavigate: () {},
+                          painting: painting,
+                        ),
                 )
               ],
             ),
