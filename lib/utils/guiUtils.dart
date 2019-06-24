@@ -43,9 +43,14 @@ class GuiUtils {
       borderRadius: 8,
       forwardAnimationCurve: Curves.ease,
       boxShadow: BoxShadow(
-          color: Colors.black38,
-          blurRadius: 5,
-          offset: Offset.fromDirection(math.pi / 2, 2)),
+        color: Colors.black38,
+        blurRadius: 5,
+        offset: Offset.fromDirection(math.pi / 2, 2),
+      ),
     ).show(context);
+  }
+
+  static int getValueFromString(String str) {
+    return str.codeUnits.reduce((c1, c2) => c1 + c2);
   }
 }

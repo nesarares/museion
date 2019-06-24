@@ -16,22 +16,22 @@ class HomeImageClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.lineTo(0.0, size.height * 0.7);
+    path.lineTo(0.0, size.height * 0.57);
     path.cubicTo(
-      0,
+      size.width * 0.05,
       size.height,
-      size.width * 0.45,
+      size.width * 0.4,
       size.height,
       size.width * 0.5,
       size.height,
     );
     path.cubicTo(
-      size.width * 0.55,
+      size.width * 0.6,
       size.height,
-      size.width * 0.9,
+      size.width * 0.95,
       size.height,
       size.width,
-      size.height * 0.5,
+      size.height * 0.57,
     );
     path.lineTo(size.width, 0);
     path.close();
@@ -147,6 +147,7 @@ class _HomeTabState extends State<HomeTab> {
       return Stack(
         children: <Widget>[
           buildBackgroundImage(context, museum),
+          buildFlagIcon(context, museum),
           SingleChildScrollView(
             child: ConstrainedBox(
               constraints:
@@ -217,7 +218,7 @@ class _HomeTabState extends State<HomeTab> {
               return !snapLoaded.hasData ||
                       (snapLoaded.hasData && snapLoaded.data)
                   ? Container()
-                  : buildTopErrorButton();
+                  : buildErrorButton();
             },
           ),
         ],
@@ -225,8 +226,33 @@ class _HomeTabState extends State<HomeTab> {
     });
   }
 
+  Widget buildFlagIcon(BuildContext context, Museum museum) {
+    var imageWidth = 64.0;
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.65 - imageWidth / 2,
+      left: MediaQuery.of(context).size.width * 0.5 - imageWidth / 2,
+      child: Container(
+        child: Image.asset(
+          'assets/flags/${museum.country.toLowerCase().replaceAll(" ", "-")}.png',
+          width: imageWidth,
+        ),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 7,
+              offset: Offset.fromDirection(math.pi / 2, 4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildBackgroundImage(BuildContext context, Museum museum) {
     double val = (museum.title.hashCode % 360).toDouble();
+    // double val = (GuiUtils.getValueFromString(museum.title) % 360).toDouble();
     return ClipPath(
       clipper: HomeImageClipper(),
       child: Container(
@@ -247,10 +273,10 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget buildTopErrorButton() {
+  Widget buildErrorButton() {
     return Container(
-        alignment: Alignment.topRight,
-        margin: EdgeInsets.fromLTRB(0, 30, 30, 0),
+        alignment: Alignment.bottomLeft,
+        margin: EdgeInsets.fromLTRB(20, 0, 0, 10),
         child: IconButton(
             icon: Icon(FeatherIcons.alertCircle, color: Colors.red),
             iconSize: 42,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:open_museum_guide/utils/constants.dart';
 
 class CustomDivider extends StatelessWidget {
   CustomDivider() : super();
