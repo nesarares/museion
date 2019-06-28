@@ -72,24 +72,15 @@ class MuseumService {
 
   Future<void> downloadMuseums() async {
     QuerySnapshot docs = await db.collection('museums').getDocuments();
-    print(docs.documents.length);
+
     List<Museum> museums = docs.documents.map((snap) {
       var map = snap.data;
       Museum museum = Museum.fromMap(map);
       return museum;
     }).toList();
-    await dbLocal.insertMuseums(museums);
 
-    museums = museums
-        .map((m) => Museum.fromMap({
-              Museum.columnId: m.id,
-              Museum.columnTitle: m.title,
-              Museum.columnImageUrl: m.imageUrl,
-              Museum.columnCity: m.city,
-              Museum.columnCountry: m.country,
-              Museum.columnCoordinates: m.coordinates
-            }))
-        .toList();
+    await dbLocal.insertMuseums(museums);
+    museums = await dbLocal.getMuseums();
 
     _museumsSubject.add(museums);
   }

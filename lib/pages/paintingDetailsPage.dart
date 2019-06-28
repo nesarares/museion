@@ -7,8 +7,8 @@ import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/painting.dart';
 import 'package:open_museum_guide/services/textToSpeechService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
+import 'package:open_museum_guide/utils/guiUtils.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class PaintingDetailsPage extends StatefulWidget {
   final Painting painting;
@@ -33,14 +33,6 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
   void goBack() async {
     await ttsService.stop();
     Navigator.pop(context);
-  }
-
-  void launchWebpage(String wiki) async {
-    if (await url_launcher.canLaunch(wiki)) {
-      await url_launcher.launch(wiki);
-    } else {
-      throw 'Could not launch $wiki';
-    }
   }
 
   Widget buildSection(String title, String content,
@@ -70,13 +62,13 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                 Padding(
                   padding: EdgeInsets.only(top: 10),
                   child: InkWell(
-                    onTap: () => launchWebpage(wiki),
+                    onTap: () => GuiUtils.launchWebpage(wiki),
                     child: Text(
                       "Read more on wikipedia",
                       style: TextStyle(
                         fontSize: fontSizeTitle,
                         fontWeight: FontWeight.w400,
-                        color: colors['primary'],
+                        color: colors['links'],
                       ),
                     ),
                   ),
@@ -100,13 +92,13 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
           ),
         ),
         InkWell(
-          onTap: () => launchWebpage('https://www.wikidata.org'),
+          onTap: () => GuiUtils.launchWebpage('https://www.wikidata.org'),
           child: Text(
             "WikiData",
             style: TextStyle(
               fontSize: fontSizeTitle,
               fontWeight: FontWeight.w400,
-              color: colors['primary'],
+              color: colors['links'],
             ),
           ),
         ),

@@ -329,6 +329,8 @@ public class MainActivity extends FlutterActivity {
       for (Map<String, String> painting : paintings) {
         String imagePath = painting.get("imagePath");
 
+        print(imagePath);
+
         Mat imgMat = Imgcodecs.imread(appDir + "/" + imagePath);
         Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_BGR2RGB);
 

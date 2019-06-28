@@ -2,6 +2,7 @@ import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 class GuiUtils {
   static void showErrorNotification(BuildContext context, {String message}) {
@@ -52,5 +53,19 @@ class GuiUtils {
 
   static int getValueFromString(String str) {
     return str.codeUnits.reduce((c1, c2) => c1 + c2);
+  }
+
+  static void launchWebpage(String url) async {
+    if (await url_launcher.canLaunch(url)) {
+      await url_launcher.launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  static void openMap(String address) async {
+    String googleUrl =
+        'https://www.google.com/maps/search/?api=1&query=$address';
+    launchWebpage(googleUrl);
   }
 }

@@ -4,19 +4,19 @@ import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:open_museum_guide/utils/constants.dart';
+import 'package:open_museum_guide/utils/guiUtils.dart';
 
 class MuseumInfoTab extends StatelessWidget {
   final MuseumService museumService = getIt.get<MuseumService>();
 
   final double sizeIconFacility = 35;
 
-  Widget buildSection(String title, String content, {bool newLines = false}) {
+  Widget buildOpenHours(String content) {
     if (content == null || content == "") {
       return Container();
     }
-    if (newLines) {
-      content = content.replaceAll(';', '\n');
-    }
+    content = content.replaceAll(';', '\n');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
       child: Column(
@@ -25,7 +25,7 @@ class MuseumInfoTab extends StatelessWidget {
           SizedBox(
             height: 25,
           ),
-          Text(title,
+          Text("Open Hours",
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w900,
@@ -38,6 +38,80 @@ class MuseumInfoTab extends StatelessWidget {
             style: TextStyle(
                 fontSize: 16, fontWeight: FontWeight.w400, color: Colors.black),
             textAlign: TextAlign.start,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildAddress(String address) {
+    if (address == null || address == "") {
+      return Container();
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            height: 25,
+          ),
+          Text("Address",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black)),
+          SizedBox(
+            height: 12,
+          ),
+          InkWell(
+            onTap: () => GuiUtils.openMap(address),
+            child: Text(
+              address,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: colors['links'],
+              ),
+              textAlign: TextAlign.start,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildWebsite(String website) {
+    if (website == null || website == "") {
+      return Container();
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            height: 25,
+          ),
+          Text("Website",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black)),
+          SizedBox(
+            height: 12,
+          ),
+          InkWell(
+            onTap: () => GuiUtils.launchWebpage(website),
+            child: Text(
+              website,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: colors['links'],
+              ),
+              textAlign: TextAlign.start,
+            ),
           ),
         ],
       ),
@@ -141,12 +215,13 @@ class MuseumInfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Object>(
+    return StreamBuilder<Museum>(
         stream: museumService.activeMuseum$,
         builder: (ctx, snap) {
+          var museum = snap.data;
           return !snap.hasData
               ? Container()
-              : snap.data == null
+              : museum == null
                   ? Container()
                   : ListView(
                       scrollDirection: Axis.vertical,
@@ -157,27 +232,26 @@ class MuseumInfoTab extends StatelessWidget {
                           width: double.infinity,
                           decoration: BoxDecoration(
                             image: DecorationImage(
-                                image: CachedNetworkImageProvider(
-                                    (snap.data as Museum).imageUrl),
+                                image:
+                                    CachedNetworkImageProvider(museum.imageUrl),
                                 fit: BoxFit.cover),
                           ),
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(30, 30, 30, 0),
                           child: Text(
-                            (snap.data as Museum).title,
+                            museum.title,
                             style: TextStyle(
                                 fontFamily: 'Rufina',
                                 fontWeight: FontWeight.w700,
                                 fontSize: 32),
                           ),
                         ),
-                        buildSection('Open hours', (snap.data as Museum).hours,
-                            newLines: true),
-                        buildFacilities((snap.data as Museum).facilities),
+                        buildOpenHours(museum.hours),
+                        buildFacilities(museum.facilities),
                         // add address map
-                        buildSection('Address', (snap.data as Museum).address),
-                        buildSection('Website', (snap.data as Museum).website)
+                        buildAddress(museum.address),
+                        buildWebsite(museum.website)
                       ],
                     );
         });

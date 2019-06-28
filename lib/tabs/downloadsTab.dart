@@ -8,6 +8,7 @@ import 'package:open_museum_guide/models/museum.dart';
 import 'package:open_museum_guide/services/downloadService.dart';
 import 'package:open_museum_guide/services/museumService.dart';
 import 'package:open_museum_guide/utils/constants.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 class DownloadsTab extends StatefulWidget {
   DownloadsTab() : super();
@@ -101,6 +102,11 @@ class _DownloadsTabState extends State<DownloadsTab> {
     });
   }
 
+  Future<void> onRefresh() async {
+    await museumService.downloadMuseums();
+    await downloadService.loadMuseumStates();
+  }
+
   Widget buildListItem(BuildContext ctxt, int index, List<Museum> museums,
       Map<String, DownloadState> states) {
     Museum current = museums[index];
@@ -132,10 +138,7 @@ class _DownloadsTabState extends State<DownloadsTab> {
 
     return filteredMuseumList.length != 0
         ? ListView.builder(
-            padding: EdgeInsets.symmetric(
-              vertical: 10,
-              horizontal: 20,
-            ),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 70),
             itemCount: filteredMuseumList.length,
             itemBuilder: (ctxt, index) => buildListItem(
                   ctxt,
@@ -170,7 +173,12 @@ class _DownloadsTabState extends State<DownloadsTab> {
           stream: downloadService.museumStates$,
           builder: (context, snapStates) {
             return snapStates.hasData
-                ? buildList(snapStates.data)
+                ? LiquidPullToRefresh(
+                    // showChildOpacityTransition: false,
+                    onRefresh: onRefresh,
+                    springAnimationDurationInMilliseconds: 400,
+                    child: buildList(snapStates.data),
+                  )
                 : Center(
                     child: SizedBox(
                       width: 25,

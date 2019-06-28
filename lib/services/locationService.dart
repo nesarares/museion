@@ -26,7 +26,6 @@ class LocationService {
     double minDist = double.infinity;
     String id;
     museumService.museums.forEach((museum) {
-      print(museum.toMap());
       final double dist = distance.distance(
           new LatLng(currentLocation.latitude, currentLocation.longitude),
           new LatLng(
