@@ -35,7 +35,6 @@ class _ImagePageState extends State<ImagePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    // Calling the same function "after layout" to resolve the issue.
     runDetection();
     // loadPainting("PSMc10DTUJAHGZAHy9OP");
   }

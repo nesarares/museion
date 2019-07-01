@@ -201,6 +201,7 @@ class _PaintingDetailsPageState extends State<PaintingDetailsPage> {
                         buildSection("Year", widget.painting?.year),
                         buildSection("Dimensions", widget.painting?.dimensions),
                         buildSection("Medium", widget.painting?.medium),
+                        buildSection("Location", widget.painting?.museum),
                         buildSection("Copyright", widget.painting?.copyright),
                         if ((widget.painting?.museum ?? '') != "Musée d'Orsay")
                           buildWikidataSection(),

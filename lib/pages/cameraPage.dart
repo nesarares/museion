@@ -51,10 +51,12 @@ class _CameraPageState extends State<CameraPage> {
     if (!mounted || paused || currentImage != null) {
       return;
     }
+
+    // controller.
     controller.startImageStream((image) {
-      if (currentImage == null) {
+      if (!mounted || paused || currentImage == null) {
         currentImage = image;
-        controller.stopImageStream();
+        // controller.stopImageStream();
         detectOnImage();
       }
     });
@@ -62,18 +64,18 @@ class _CameraPageState extends State<CameraPage> {
 
   Future<void> detectOnImage() async {
     print('${currentImage.width} x ${currentImage.height}');
-    if (!mounted) return;
+    if (!mounted || paused) return;
     String id = await detectionService.recognizePaintingStream(currentImage);
     if (id != null && detectedId != id) {
       Painting p = await paintingService.loadPainting(id);
-      if (!mounted) return;
+      if (!mounted || paused) return;
       setState(() {
         detectedId = id;
         painting = p;
       });
     }
     currentImage = null;
-    startDetection();
+    // startDetection();
   }
 
   @override
@@ -84,6 +86,7 @@ class _CameraPageState extends State<CameraPage> {
 
   void beforeNavigate() {
     paused = true;
+    controller.stopImageStream();
   }
 
   void afterNavigate() {
@@ -97,32 +100,45 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     if (!controller.value.isInitialized) {
       return Container();
     }
-    return AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: Scaffold(
-          body: Stack(
-            children: <Widget>[
-              CameraPreview(controller),
-              Container(
-                margin: EdgeInsets.fromLTRB(5, 30, 0, 0),
-                child: RoundIconButton(
-                  iconSize: 32,
-                  icon: Icons.arrow_back,
-                  onPressed: goBack,
+
+    return Scaffold(
+      body: Stack(
+        children: <Widget>[
+          ClipRect(
+            child: Container(
+              child: Transform.scale(
+                scale: controller.value.aspectRatio / size.aspectRatio,
+                child: Center(
+                  child: AspectRatio(
+                    child: CameraPreview(controller),
+                    aspectRatio: controller.value.aspectRatio,
+                  ),
                 ),
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: PaintingCard(
-                    painting: painting,
-                    beforeNavigate: beforeNavigate,
-                    afterNavigate: afterNavigate),
-              )
-            ],
+            ),
           ),
-        ));
+          Container(
+            margin: EdgeInsets.fromLTRB(5, 30, 0, 0),
+            child: RoundIconButton(
+              iconSize: 32,
+              icon: Icons.arrow_back,
+              onPressed: goBack,
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: PaintingCard(
+                painting: painting,
+                beforeNavigate: beforeNavigate,
+                afterNavigate: afterNavigate),
+          )
+        ],
+      ),
+    );
   }
 }

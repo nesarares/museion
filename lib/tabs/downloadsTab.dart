@@ -124,6 +124,8 @@ class _DownloadsTabState extends State<DownloadsTab> {
   }
 
   Widget buildList(Map<String, DownloadState> museumStates) {
+    museumList = museumService.museums;
+
     if (searchText.isNotEmpty) {
       searchText = searchText.toLowerCase();
       var filtered = museumList.where((museum) {

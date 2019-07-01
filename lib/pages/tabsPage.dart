@@ -79,88 +79,99 @@ class _TabsPageState extends State<TabsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: PageView(
-          controller: controller,
-          onPageChanged: onPageChanged,
-          children: <Widget>[
-            HomeTab(onErrorTap: () => this.openErrorNoData()),
-            MuseumInfoTab(),
-            HistoryTab(),
-            DownloadsTab()
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: StreamBuilder<Object>(
-            stream: museumService.isDataLoaded$,
-            builder: (ctx, snap) {
-              var childButtons = List<UnicornButton>();
-              childButtons.add(UnicornButton(
-                  hasLabel: true,
-                  labelText: "Camera",
-                  currentButton: FloatingActionButton(
-                    heroTag: "camera",
-                    backgroundColor: Colors.redAccent,
-                    mini: true,
-                    child: Icon(FeatherIcons.camera),
-                    onPressed: openCamera,
-                  )));
-              childButtons.add(UnicornButton(
-                  hasLabel: true,
-                  labelText: "Gallery",
-                  currentButton: FloatingActionButton(
-                    heroTag: "gallery",
-                    backgroundColor: Colors.redAccent,
-                    mini: true,
-                    child: Icon(FeatherIcons.image),
-                    onPressed: openGallery,
-                  )));
-              return UnicornDialer(
-                  parentButtonBackground: snap.hasData && snap.data
-                      ? colors['primary']
-                      : colors['disabledGray'],
-                  orientation: UnicornOrientation.VERTICAL,
-                  parentButton: Icon(
-                    FeatherIcons.camera,
-                    size: 30,
-                    color: Colors.white,
-                  ),
-                  backgroundColor: Colors.white70,
-                  hasBackground: true,
-                  animationDuration: 120,
-                  onMainButtonPressed: snap.hasData && snap.data
-                      ? () {}
-                      : () => openErrorNoData(),
-                  childButtons: snap.hasData && snap.data ? childButtons : []);
-            }),
-        bottomNavigationBar: StreamBuilder(
-            stream: indexcontroller.stream,
-            initialData: 0,
-            builder: (c, snap) {
-              int currentindex = snap.data;
-              return BottomNavyBar(
-                selectedIndex: currentindex,
-                showElevation: true,
-                onItemSelected: onItemSelected,
-                items: [
-                  BottomNavyBarItem(
-                    icon: Icon(FeatherIcons.home),
-                    title: Text('Home'),
-                    activeColor: Colors.deepOrange,
-                  ),
-                  BottomNavyBarItem(
-                      icon: Icon(FeatherIcons.helpCircle),
-                      title: Text('Museum info'),
-                      activeColor: Colors.purpleAccent),
-                  BottomNavyBarItem(
-                      icon: Icon(Icons.history),
-                      title: Text('History'),
-                      activeColor: Colors.redAccent),
-                  BottomNavyBarItem(
-                      icon: Icon(FeatherIcons.download),
-                      title: Text('Downloads'),
-                      activeColor: Colors.blueAccent),
-                ],
-              );
-            }));
+      body: PageView(
+        controller: controller,
+        onPageChanged: onPageChanged,
+        children: <Widget>[
+          HomeTab(onErrorTap: () => this.openErrorNoData()),
+          MuseumInfoTab(),
+          HistoryTab(),
+          DownloadsTab()
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: StreamBuilder<Object>(
+          stream: museumService.isDataLoaded$,
+          builder: (ctx, snap) {
+            var childButtons = List<UnicornButton>();
+            childButtons.add(
+              UnicornButton(
+                hasLabel: true,
+                labelText: "Camera",
+                currentButton: FloatingActionButton(
+                  heroTag: "camera",
+                  backgroundColor: Colors.redAccent,
+                  mini: true,
+                  child: Icon(FeatherIcons.camera),
+                  onPressed: openCamera,
+                ),
+              ),
+            );
+            childButtons.add(
+              UnicornButton(
+                hasLabel: true,
+                labelText: "Gallery",
+                currentButton: FloatingActionButton(
+                  heroTag: "gallery",
+                  backgroundColor: Colors.redAccent,
+                  mini: true,
+                  child: Icon(FeatherIcons.image),
+                  onPressed: openGallery,
+                ),
+              ),
+            );
+            return UnicornDialer(
+              parentButtonBackground: snap.hasData && snap.data
+                  ? colors['primary']
+                  : colors['disabledGray'],
+              orientation: UnicornOrientation.VERTICAL,
+              parentButton: Icon(
+                FeatherIcons.camera,
+                size: 30,
+                color: Colors.white,
+              ),
+              backgroundColor: Colors.white.withOpacity(0.85),
+              hasBackground: true,
+              animationDuration: 100,
+              onMainButtonPressed:
+                  snap.hasData && snap.data ? () {} : () => openErrorNoData(),
+              childButtons: snap.hasData && snap.data ? childButtons : [],
+            );
+          }),
+      bottomNavigationBar: StreamBuilder(
+        stream: indexcontroller.stream,
+        initialData: 0,
+        builder: (c, snap) {
+          int currentindex = snap.data;
+          return BottomNavyBar(
+            selectedIndex: currentindex,
+            showElevation: true,
+            onItemSelected: onItemSelected,
+            items: [
+              BottomNavyBarItem(
+                icon: Icon(FeatherIcons.home),
+                title: Text('Home'),
+                activeColor: Colors.deepOrange,
+              ),
+              BottomNavyBarItem(
+                icon: Icon(FeatherIcons.helpCircle),
+                title: Text('Museum info'),
+                activeColor: Colors.purpleAccent,
+              ),
+              BottomNavyBarItem(
+                icon: Icon(Icons.history),
+                title: Text('History'),
+                activeColor: Colors.redAccent,
+              ),
+              BottomNavyBarItem(
+                icon: Icon(FeatherIcons.download),
+                title: Text('Downloads'),
+                activeColor: Colors.blueAccent,
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
