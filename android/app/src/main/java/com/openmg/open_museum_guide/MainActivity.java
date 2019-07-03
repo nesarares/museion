@@ -329,9 +329,15 @@ public class MainActivity extends FlutterActivity {
       for (Map<String, String> painting : paintings) {
         String imagePath = painting.get("imagePath");
 
-        print(imagePath);
+        // print(imagePath);
 
         Mat imgMat = Imgcodecs.imread(appDir + "/" + imagePath);
+
+        if (imgMat.empty()) {
+          print("Could not find " + imagePath + ", skipping...");
+          continue;
+        }
+
         Imgproc.cvtColor(imgMat, imgMat, Imgproc.COLOR_BGR2RGB);
 
         ImgDataString imgDataString = generateImageDataString(imgMat);

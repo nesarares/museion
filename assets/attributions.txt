@@ -1,0 +1,14 @@
+[
+	{
+		"link": "https://www.humaaans.com/",
+		"text": "Loading and no location illustrations parts: Humaaans library by Pablo Stanley"
+	},
+	{
+		"link": "https://www.freepik.com/free-photos-vectors/abstract",
+		"text": "Empty history illustration parts: abstract vector created by macrovector - www.freepik.com"
+	},
+	{
+		"link": "https://www.freepik.com",
+		"text": "Other assets obtained from freepik.com"
+	}
+]

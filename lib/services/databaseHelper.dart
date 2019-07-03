@@ -98,13 +98,22 @@ class DatabaseHelper {
   }
 
   Future<Painting> getPaintingById(String id) async {
+    // Database db = await database;
+    // List<Map> maps = await db.query(Painting.tableName,
+    //     where: '${Painting.columnId} = ?', whereArgs: [id]);
+    // if (maps.length > 0) {
+    //   return Painting.fromMap(maps.first);
+    // }
+    // return null;
+
     Database db = await database;
-    List<Map> maps = await db.query(Painting.tableName,
-        where: '${Painting.columnId} = ?', whereArgs: [id]);
-    if (maps.length > 0) {
-      return Painting.fromMap(maps.first);
-    }
-    return null;
+    List<Map<String, dynamic>> query = await db.rawQuery('''
+      SELECT p.*, m.${Museum.columnTitle} as ${Painting.columnMuseum}
+      FROM ${Painting.tableName} p INNER JOIN ${Museum.tableName} m
+        ON p.${Painting.columnMuseum} = m.${Museum.columnId}
+      WHERE p.${Painting.columnId} = ?
+    ''', [id]);
+    return query.map((m) => Painting.fromMap(m)).toList().first;
   }
 
   Future<int> updatePaintingLastViewedById(String id, int lastViewed) async {
@@ -117,6 +126,25 @@ class DatabaseHelper {
       SET ${Painting.columnLastViewed} = ? 
       WHERE ${Painting.columnId} = ?
       ''', [lastViewed, id]));
+  }
+
+  Future<int> removePaintingLastViewedById(String id) async {
+    Database db = await database;
+    return (await db.rawUpdate('''
+      UPDATE ${Painting.tableName} 
+      SET ${Painting.columnLastViewed} = NULL 
+      WHERE ${Painting.columnId} = ?
+      ''', [id]));
+  }
+
+  Future<int> removePaintingsLastViewed() async {
+    Database db = await database;
+    return (await db.rawUpdate(
+      '''
+      UPDATE ${Painting.tableName}
+      SET ${Painting.columnLastViewed} = NULL
+      ''',
+    ));
   }
 
   Future<List<Map<String, dynamic>>> getPaintingsWithColumnsByMuseum(

@@ -28,6 +28,7 @@ class LoadingService {
     await textToSpeechService.loadTTS();
 
     await museumService.loadMuseums();
+    await paintingService.loadHistoryPaintings();
     await downloadService.loadMuseumStates();
     // String currentMuseumId = "GWNdYOmSpgjkLxnLSroV";
     await locationService.detectAndChangeActiveMuseum();

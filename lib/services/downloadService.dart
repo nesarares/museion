@@ -181,6 +181,7 @@ class DownloadService {
   }
 
   Future<void> generateData(String museumId) async {
+    print('Started generating data');
     notifyChanges(museumId, DownloadState.GENERATING_DATA);
 
     var paintings = await dbLocal.getPaintingsWithColumnsByMuseum(

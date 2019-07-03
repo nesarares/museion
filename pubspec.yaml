@@ -24,6 +24,7 @@ dependencies:
   firebase_storage: ^2.1.0+1
   flushbar: ^1.4.0
   fluttertoast: ^3.0.1
+  flutter_slidable: "^0.5.3"
   flutter_tts: ^0.2.4
   font_awesome_flutter: ^8.4.0
   get_it: ^1.0.3+1

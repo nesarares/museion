@@ -139,17 +139,45 @@ class _DownloadsTabState extends State<DownloadsTab> {
     }
 
     return filteredMuseumList.length != 0
-        ? ListView.builder(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, 70),
-            itemCount: filteredMuseumList.length,
-            itemBuilder: (ctxt, index) => buildListItem(
-                  ctxt,
-                  index,
-                  filteredMuseumList,
-                  museumStates,
-                ),
+        ? LiquidPullToRefresh(
+            // showChildOpacityTransition: false,
+            onRefresh: onRefresh,
+            springAnimationDurationInMilliseconds: 400,
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(20, 10, 20, 70),
+              itemCount: filteredMuseumList.length,
+              itemBuilder: (ctxt, index) => buildListItem(
+                    ctxt,
+                    index,
+                    filteredMuseumList,
+                    museumStates,
+                  ),
+            ),
           )
-        : Center(child: Text("Empty"));
+        : LayoutBuilder(
+            builder: (context, viewportConstraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(minHeight: viewportConstraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 50),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Image.asset(
+                          'assets/images/empty-history.png',
+                          fit: BoxFit.fitWidth,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
   }
 
   @override
@@ -175,12 +203,7 @@ class _DownloadsTabState extends State<DownloadsTab> {
           stream: downloadService.museumStates$,
           builder: (context, snapStates) {
             return snapStates.hasData
-                ? LiquidPullToRefresh(
-                    // showChildOpacityTransition: false,
-                    onRefresh: onRefresh,
-                    springAnimationDurationInMilliseconds: 400,
-                    child: buildList(snapStates.data),
-                  )
+                ? buildList(snapStates.data)
                 : Center(
                     child: SizedBox(
                       width: 25,

@@ -6,7 +6,8 @@ import 'package:open_museum_guide/components/paintingCard.dart';
 import 'package:open_museum_guide/main.dart';
 import 'package:open_museum_guide/services/databaseHelper.dart';
 import 'package:open_museum_guide/models/painting.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:open_museum_guide/services/paintingService.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class HistoryTab extends StatefulWidget {
   HistoryTab() : super();
@@ -16,8 +17,9 @@ class HistoryTab extends StatefulWidget {
 
 class _HistoryTabState extends State<HistoryTab> {
   final DatabaseHelper dbLocal = getIt.get<DatabaseHelper>();
+  final PaintingService paintingService = getIt.get<PaintingService>();
 
-  List<Painting> paintingList = [];
+  List<Painting> paintingsList = [];
   List<Painting> filteredPaintingList = [];
 
   TextEditingController editingController = TextEditingController();
@@ -30,10 +32,11 @@ class _HistoryTabState extends State<HistoryTab> {
     child: Text('History'),
   );
 
+  final animatedListKey = GlobalKey<AnimatedListState>();
+
   @override
   void initState() {
     super.initState();
-    loadData();
     editingController.addListener(onSearch);
   }
 
@@ -41,19 +44,6 @@ class _HistoryTabState extends State<HistoryTab> {
   void dispose() {
     super.dispose();
     editingController.dispose();
-  }
-
-  void loadData() async {
-    String savedDirPath = (await getApplicationDocumentsDirectory()).path;
-    List<Painting> lst = await dbLocal.getPaintingsViewed();
-    lst = lst.map((p) {
-      p.imagePath = "$savedDirPath/${p.imagePath}";
-      return p;
-    }).toList();
-    setState(() {
-      paintingList = lst;
-      filteredPaintingList = List.from(lst);
-    });
   }
 
   void onSearch() {
@@ -96,37 +86,137 @@ class _HistoryTabState extends State<HistoryTab> {
           padding: EdgeInsets.only(top: 25),
           child: Text('History'),
         );
-        filteredPaintingList = paintingList;
+        filteredPaintingList = paintingsList;
         editingController.clear();
       }
     });
   }
 
+  Future<void> clearHistory() async {
+    paintingService.removeAllPaintingsFromHistory();
+  }
+
+  Future<void> removeItem(int index) async {
+    Painting toRemove = filteredPaintingList[index];
+    paintingService.removePaintingFromHistory(toRemove.id);
+  }
+
+  Widget clearHistoryButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 0, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          FlatButton(
+            padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+            child: Row(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(right: 15),
+                  child: RotatedBox(
+                    quarterTurns: 1,
+                    child: Icon(FeatherIcons.barChart2),
+                  ),
+                ),
+                Text(
+                  "CLEAR HISTORY",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 4,
+                  ),
+                ),
+              ],
+            ),
+            onPressed: clearHistory,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget buildList() {
     if (searchText.isNotEmpty) {
       searchText = searchText.toLowerCase();
-      var filtered = paintingList.where((painting) {
+      var filtered = paintingsList.where((painting) {
         return painting.artist.toLowerCase().contains(searchText) ||
             painting.title.toLowerCase().contains(searchText) ||
             painting.museum.toLowerCase().contains(searchText);
       }).toList();
       filteredPaintingList = filtered;
     } else {
-      filteredPaintingList = paintingList;
+      filteredPaintingList = paintingsList;
     }
+
+    bool isSearching = filteredPaintingList.length != paintingsList.length;
+    int last = filteredPaintingList.length;
 
     return filteredPaintingList.length != 0
         ? ListView.builder(
-            padding: EdgeInsets.fromLTRB(5, 0, 5, 30),
-            itemCount: filteredPaintingList.length,
+            padding: EdgeInsets.fromLTRB(5, 0, 5, 20),
+            itemCount: filteredPaintingList.length + 1,
             itemBuilder: (BuildContext ctxt, int index) {
-              return PaintingCard(
-                painting: filteredPaintingList[index],
-                showMuseumName: true,
-              );
+              if (!isSearching && index == last) {
+                return clearHistoryButton();
+              }
+              return buildListItem(index);
             },
           )
-        : Center(child: Text("Empty"));
+        : Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Image.asset(
+                  'assets/images/empty-history.png',
+                  fit: BoxFit.fitWidth,
+                ),
+              ],
+            ),
+          );
+  }
+
+  Widget buildListItem(int index) {
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.4,
+      child: PaintingCard(
+        painting: filteredPaintingList[index],
+        showMuseumName: true,
+      ),
+      actions: <Widget>[
+        IconSlideAction(
+          // caption: 'Remove',
+          color: Colors.transparent,
+          iconWidget: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Icon(
+                  FeatherIcons.trash,
+                  color: Colors.red,
+                  size: 32,
+                ),
+              ),
+              Text(
+                "REMOVE",
+                style: TextStyle(
+                  fontSize: 14,
+                  letterSpacing: 4,
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            ],
+          ),
+          foregroundColor: Colors.red,
+          onTap: () => removeItem(index),
+        ),
+      ],
+    );
   }
 
   @override
@@ -148,7 +238,12 @@ class _HistoryTabState extends State<HistoryTab> {
           ],
         ),
       ),
-      body: buildList(),
+      body: StreamBuilder<List<Painting>>(
+          stream: paintingService.historyPaintings$,
+          builder: (context, snapshot) {
+            paintingsList = snapshot.data ?? [];
+            return buildList();
+          }),
     );
   }
 }
